@@ -2,7 +2,7 @@
 
 #define UNIDATA_VERSION "7.0.0"
 /* a list of unique database records */
-const _PyUnicode_DatabaseRecord _PyUnicode_Database_Records[] = {
+static const _PyUnicode_DatabaseRecord _PyUnicode_Database_Records[] = {
     {0, 0, 0, 0, 0, 0},
     {13, 0, 15, 0, 5, 0},
     {13, 0, 17, 0, 5, 0},
@@ -598,7 +598,7 @@ static struct reindex nfc_last[] = {
 };
 
 /* string literals */
-const char *_PyUnicode_CategoryNames[] = {
+static const char *_PyUnicode_CategoryNames[] = {
     "Cn",
     "Lu",
     "Ll",
@@ -632,7 +632,7 @@ const char *_PyUnicode_CategoryNames[] = {
     "So",
     NULL
 };
-const char *_PyUnicode_BidirectionalNames[] = {
+static const char *_PyUnicode_BidirectionalNames[] = {
     "",
     "L",
     "LRE",
@@ -659,7 +659,7 @@ const char *_PyUnicode_BidirectionalNames[] = {
     "PDI",
     NULL
 };
-const char *_PyUnicode_EastAsianWidthNames[] = {
+static const char *_PyUnicode_EastAsianWidthNames[] = {
     "F",
     "H",
     "W",
