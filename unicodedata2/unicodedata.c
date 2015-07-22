@@ -16,6 +16,10 @@
 #include "ucnhash.h"
 #include "structmember.h"
 
+#if PY_MAJOR_VERSION < 2 || PY_MINOR_VERSION < 7
+#define Py_TOUPPER toupper
+#endif
+
 /* character properties */
 
 typedef struct {
