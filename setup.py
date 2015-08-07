@@ -15,4 +15,5 @@ setup (name = "unicodedata2",
        license="Apache License 2.0",
        platforms=['any'],
        url="http://github.com/mikekap/unicodedata2",
+       test_suite="tests",
 )

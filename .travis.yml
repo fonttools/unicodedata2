@@ -1,0 +1,13 @@
+# See tests/README.rst for instructions for using travis with developer builds.
+language: python
+
+sudo: false
+
+python:
+  - '2.6'
+  - '2.7'
+  - '2.7.8'
+
+script:
+  - python setup.py test
+
