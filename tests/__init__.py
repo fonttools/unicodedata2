@@ -4,13 +4,15 @@ import unicodedata2
 
 from unittest import TestCase
 
+sys.modules['unicodedata'] = unicodedata2
+
 try:
     from test.test_unicodedata import *
-    UnicodeFunctionsTest.test_function_checksum = lambda self: None
+    del test_main
+    UnicodeFunctionsTest.expectedchecksum = '61a3f241df846792b34f2b336369e707fa10541e'
 except ImportError as e:
     pass
 
-sys.modules['unicodedata'] = unicodedata2
 
 
 
