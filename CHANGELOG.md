@@ -1,3 +1,6 @@
+## 9.0.0-2
+ - Python 3 support
+
 ## 9.0.0
  - Upgrade to unicode 9.0.0
 
