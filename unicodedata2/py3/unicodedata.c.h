@@ -369,7 +369,7 @@ unicodedata_UCD_lookup(PyObject *self, PyObject *arg)
 {
     PyObject *return_value = NULL;
     const char *name;
-    Py_clean_t name_length;
+    Py_ssize_t name_length;
 
     if (!PyArg_Parse(arg, "s#:lookup", &name, &name_length)) {
         goto exit;
