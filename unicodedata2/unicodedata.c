@@ -40,6 +40,7 @@ typedef struct change_record {
     const unsigned char category_changed;
     const unsigned char decimal_changed;
     const unsigned char mirrored_changed;
+    const unsigned char east_asian_width_changed;
     const double numeric_changed;
 } change_record;
 
@@ -390,6 +391,8 @@ unicodedata_east_asian_width(PyObject *self, PyObject *args)
         const change_record *old = get_old_record(self, c);
         if (old->category_changed == 0)
             index = 0; /* unassigned */
+        else if (old->east_asian_width_changed != 0xFF)
+            index = old->east_asian_width_changed;
     }
     return PyString_FromString(_PyUnicode_EastAsianWidthNames[index]);
 }
@@ -876,11 +879,13 @@ static char *hangul_syllables[][3] = {
 static int
 is_unified_ideograph(Py_UCS4 code)
 {
-    return (
+    return
         (0x3400 <= code && code <= 0x4DB5) || /* CJK Ideograph Extension A */
-        (0x4E00 <= code && code <= 0x9FCB) || /* CJK Ideograph, Unicode 5.2 */
+        (0x4E00 <= code && code <= 0x9FD5) || /* CJK Ideograph */
         (0x20000 <= code && code <= 0x2A6D6) || /* CJK Ideograph Extension B */
-        (0x2A700 <= code && code <= 0x2B734));  /* CJK Ideograph Extension C */
+        (0x2A700 <= code && code <= 0x2B734) || /* CJK Ideograph Extension C */
+        (0x2B740 <= code && code <= 0x2B81D) || /* CJK Ideograph Extension D */
+        (0x2B820 <= code && code <= 0x2CEA1);   /* CJK Ideograph Extension E */
 }
 
 /* macros used to determine if the given codepoint is in the PUA range that
