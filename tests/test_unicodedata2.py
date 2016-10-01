@@ -213,45 +213,6 @@ class UnicodeMiscTest(UnicodeDatabaseTest):
     def test_bug_1704793(self):
         self.assertEqual(self.db.lookup("GOTHIC LETTER FAIHU"), '\U00010346')
 
-    def test_ucd_510(self):
-        import unicodedata2
-        # In UCD 5.1.0, a mirrored property changed wrt. UCD 3.2.0
-        self.assertTrue(unicodedata2.mirrored("\u0f3a"))
-        self.assertTrue(not unicodedata2.ucd_3_2_0.mirrored("\u0f3a"))
-        # Also, we now have two ways of representing
-        # the upper-case mapping: as delta, or as absolute value
-        self.assertTrue("a".upper()=='A')
-        self.assertTrue("\u1d79".upper()=='\ua77d')
-        self.assertTrue(".".upper()=='.')
-
-    def test_bug_5828(self):
-        self.assertEqual("\u1d79".lower(), "\u1d79")
-        # Only U+0000 should have U+0000 as its upper/lower/titlecase variant
-        self.assertEqual(
-            [
-                c for c in range(sys.maxunicode+1)
-                if "\x00" in chr(c).lower()+chr(c).upper()+chr(c).title()
-            ],
-            [0]
-        )
-
-    def test_bug_4971(self):
-        # LETTER DZ WITH CARON: DZ, Dz, dz
-        self.assertEqual("\u01c4".title(), "\u01c5")
-        self.assertEqual("\u01c5".title(), "\u01c5")
-        self.assertEqual("\u01c6".title(), "\u01c5")
-
-    def test_linebreak_7643(self):
-        for i in range(0x10000):
-            lines = (chr(i) + 'A').splitlines()
-            if i in (0x0a, 0x0b, 0x0c, 0x0d, 0x85,
-                     0x1c, 0x1d, 0x1e, 0x2028, 0x2029):
-                self.assertEqual(len(lines), 2,
-                                 "\\u%.4x should be a linebreak" % i)
-            else:
-                self.assertEqual(len(lines), 1,
-                                 "\\u%.4x should not be a linebreak" % i)
-
 if __name__ == "__main__":
     unittest.main()
 
