@@ -38,28 +38,12 @@ environment:
       PYTHON_VERSION: "2.7.0"
       PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Python272"
-      PYTHON_VERSION: "2.7.2"
+    - PYTHON: "C:\\Python27.11"
+      PYTHON_VERSION: "2.7.11"
       PYTHON_ARCH: "32"
 
-    - PYTHON: "C:\\Python272-x64"
-      PYTHON_VERSION: "2.7.2"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python273"
-      PYTHON_VERSION: "2.7.3"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python273-x64"
-      PYTHON_VERSION: "2.7.3"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python27.10"
-      PYTHON_VERSION: "2.7.10"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python27.10-x64"
-      PYTHON_VERSION: "2.7.10"
+    - PYTHON: "C:\\Python27.11-x64"
+      PYTHON_VERSION: "2.7.11"
       PYTHON_ARCH: "64"
 
 install:
