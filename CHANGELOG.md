@@ -1,5 +1,6 @@
 ## 9.0.0-2
  - Python 3 support
+ - Fix incorrect digitification caused by using the underlying python's unicode tables.
 
 ## 9.0.0
  - Upgrade to unicode 9.0.0
