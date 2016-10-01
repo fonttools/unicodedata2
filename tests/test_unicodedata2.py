@@ -41,7 +41,6 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         data = []
         h = hashlib.sha1()
 
-        fp = open('/tmp/file{}.txt'.format(sys.version_info[0]), 'w')
         for i in range(0x10000):
             char = chr(i)
             data = [
@@ -55,10 +54,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
                 str(self.db.mirrored(char)),
                 str(self.db.combining(char)),
             ]
-            fp.write(''.join(data))
-            fp.write('\n')
             h.update(''.join(data).encode("ascii"))
-        fp.close()
         result = h.hexdigest()
         self.assertEqual(result, self.expectedchecksum)
 
