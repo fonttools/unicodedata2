@@ -1,4 +1,4 @@
 include README
 include LICENSE
-include unicodedata2/*.c
-include unicodedata2/*.h
+include unicodedata2/*/*.c
+include unicodedata2/*/*.h

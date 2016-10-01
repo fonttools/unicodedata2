@@ -133,7 +133,7 @@ def makeunicodedata(unicode, trace):
     cache = {0: dummy}
     index = [0] * len(unicode.chars)
 
-    FILE = "unicodedata2/unicodedata_db.h"
+    FILE = "unicodedata2/py2/unicodedata_db.h"
 
     print("--- Preparing", FILE, "...")
 
@@ -380,7 +380,7 @@ def makeunicodedata(unicode, trace):
 
 def makeunicodetype(unicode, trace):
 
-    FILE = "unicodedata2/unicodetype_db.h"
+    FILE = "unicodedata2/py2/unicodetype_db.h"
 
     print("--- Preparing", FILE, "...")
 

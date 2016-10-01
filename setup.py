@@ -1,8 +1,8 @@
 from setuptools import setup, Extension
 
 module1 = Extension('unicodedata2',
-                    sources = ['./unicodedata2/unicodedata.c'],
-                    include_dirs = ['./unicodedata2'],
+                    sources = ['./unicodedata2/py2/unicodedata.c'],
+                    include_dirs = ['./unicodedata2/py2'],
 )
 
 setup (name = "unicodedata2",
