@@ -362,14 +362,14 @@ PyDoc_STRVAR(unicodedata_UCD_lookup__doc__,
 
 static PyObject *
 unicodedata_UCD_lookup_impl(PyObject *self, const char *name,
-                            Py_ssize_clean_t name_length);
+                            Py_ssize_t name_length);
 
 static PyObject *
 unicodedata_UCD_lookup(PyObject *self, PyObject *arg)
 {
     PyObject *return_value = NULL;
     const char *name;
-    Py_ssize_clean_t name_length;
+    Py_clean_t name_length;
 
     if (!PyArg_Parse(arg, "s#:lookup", &name, &name_length)) {
         goto exit;
