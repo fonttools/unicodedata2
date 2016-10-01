@@ -1,3 +1,6 @@
+## 9.0.0
+ - Upgrade to unicode 9.0.0
+
 ## 8.0.0
  - Upgrade to unicode 8.0.0
 
