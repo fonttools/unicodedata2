@@ -4013,7 +4013,7 @@ static unsigned short index2[] = {
 /* Returns the numeric value as double for Unicode characters
  * having this property, -1.0 otherwise.
  */
-double _PyUnicode_ToNumeric(Py_UCS4 ch)
+double _PyUnicode2_ToNumeric(Py_UCS4 ch)
 {
     switch (ch) {
     case 0x0F33:
@@ -5738,7 +5738,7 @@ double _PyUnicode_ToNumeric(Py_UCS4 ch)
 /* Returns 1 for Unicode characters having the bidirectional
  * type 'WS', 'B' or 'S' or the category 'Zs', 0 otherwise.
  */
-static int _PyUnicode_IsWhitespace(const Py_UCS4 ch)
+int _PyUnicode2_IsWhitespace(const Py_UCS4 ch)
 {
     switch (ch) {
     case 0x0009:
@@ -5779,7 +5779,7 @@ static int _PyUnicode_IsWhitespace(const Py_UCS4 ch)
  * property 'BK', 'CR', 'LF' or 'NL' or having bidirectional
  * type 'B', 0 otherwise.
  */
-static int _PyUnicode_IsLinebreak(const Py_UCS4 ch)
+int _PyUnicode2_IsLinebreak(const Py_UCS4 ch)
 {
     switch (ch) {
     case 0x000A:
