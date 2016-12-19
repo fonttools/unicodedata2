@@ -1,49 +1,26 @@
 environment:
   global:
-    APPVEYOR_PYTHON_URL: "https://raw.githubusercontent.com/ogrisel/python-appveyor-demo/master/appveyor/"
-
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
     # /E:ON and /V:ON options are not enabled in the batch script intepreter
     # See: http://stackoverflow.com/a/13751649/163740
-    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C %APPVEYOR_BUILD_FOLDER%\\multibuild\\ci\\appveyor\\windows_sdk.cmd"
 
   matrix:
 
-    # Pre-installed Python versions, which Appveyor may upgrade to
-    # a later point release.
+    - PYTHON: "C:\\Python26"
+      PYTHON_VERSION: "2.6.6"
+      PYTHON_ARCH: "32"
+
+    - PYTHON: "C:\\Python26-x64"
+      PYTHON_VERSION: "2.6.6"
+      PYTHON_ARCH: "64"
 
     - PYTHON: "C:\\Python27"
-      PYTHON_VERSION: "2.7.x" # currently 2.7.9
+      PYTHON_VERSION: "2.7.x"
       PYTHON_ARCH: "32"
 
     - PYTHON: "C:\\Python27-x64"
-      PYTHON_VERSION: "2.7.x" # currently 2.7.9
-      PYTHON_ARCH: "64"
-
-    # Additional Python versions
-
-    - PYTHON: "C:\\Python266"
-      PYTHON_VERSION: "2.6.6"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python266-x64"
-      PYTHON_VERSION: "2.6.6"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python270"
-      PYTHON_VERSION: "2.7.0"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python270-x64"
-      PYTHON_VERSION: "2.7.0"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python27.11"
-      PYTHON_VERSION: "2.7.11"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python27.11-x64"
-      PYTHON_VERSION: "2.7.11"
+      PYTHON_VERSION: "2.7.x"
       PYTHON_ARCH: "64"
 
     - PYTHON: "C:\\Python33"
@@ -54,6 +31,14 @@ environment:
       PYTHON_VERSION: "3.3.x"
       PYTHON_ARCH: "64"
 
+    - PYTHON: "C:\\Python34"
+      PYTHON_VERSION: "3.4.x"
+      PYTHON_ARCH: "32"
+
+    - PYTHON: "C:\\Python34-x64"
+      PYTHON_VERSION: "3.4.x"
+      PYTHON_ARCH: "64"
+
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5.x"
       PYTHON_ARCH: "32"
@@ -62,18 +47,14 @@ environment:
       PYTHON_VERSION: "3.5.x"
       PYTHON_ARCH: "64"
 
+matrix:
+  fast_finish: true
+
 install:
-  - mkdir appveyor
-  - ps: $wc = new-object net.webclient
-  - ps: $run = $wc.DownloadString($env:APPVEYOR_PYTHON_URL + 'run_with_env.cmd')
-  - ps: $run | Out-File -Encoding ascii -FilePath appveyor\run_with_env.cmd
+  # Fetch submodules
+  - git submodule update --init --recursive
 
-  # This is needed for Python versions not installed on Appveyor build machines
-  - ps: if (-not(Test-Path($env:PYTHON))) { iex $wc.DownloadString($env:APPVEYOR_PYTHON_URL + 'install.ps1') }
-
-  # Prepend newly installed Python to the PATH of this build (this cannot be
-  # done from inside the powershell script as it would require to restart
-  # the parent CMD process).
+  # Prepend Python to the PATH of this build
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   # Check that we have the expected version and architecture for Python
@@ -83,7 +64,14 @@ install:
   # Upgrade to the latest version of pip to avoid it displaying warnings
   # about it being out of date.
   - "pip install --disable-pip-version-check --user --upgrade pip"
-  - "pip install wheel"
+
+  # Upgrade setuptools, wheel and virtualenv
+  - "pip install --upgrade setuptools wheel virtualenv"
+
+  # Create new virtual environment and activate it
+  - "python -m virtualenv venv"
+  - "venv\\Scripts\\activate"
+  - "python -c \"import sys; print(sys.executable)\""
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
@@ -93,13 +81,19 @@ test_script:
 
 after_test:
   # If tests are successful, create a whl package for the project.
-  - "%CMD_IN_ENV% python setup.py bdist_wheel bdist_wininst"
+  - "%CMD_IN_ENV% python setup.py bdist_wheel"
   - ps: "ls dist"
 
 artifacts:
   # Archive the generated wheel package in the ci.appveyor.com build report.
-  - path: dist\*
+  - path: dist\*.whl
 
-#on_success:
-#  - TODO: upload the content of dist/*.whl to a public wheelhouse
-#
+deploy:
+  # Deploy wheels on tags to GitHub Releases
+  - provider: GitHub
+    auth_token:
+      secure: xUMk47syMYcTfNy6sm5agNGSnUeUeMWgTvwhnTupLV27MNAtqoF77bmBOhATv2PZ
+    draft: false
+    prerelease: false
+    on:
+      appveyor_repo_tag: true

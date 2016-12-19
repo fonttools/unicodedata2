@@ -1,16 +1,109 @@
-# See tests/README.rst for instructions for using travis with developer builds.
+env:
+  global:
+    # directory containing the project source
+    - REPO_DIR=.
+    # pip dependencies to _build_ project
+    - BUILD_DEPENDS=
+    # pip dependencies to _test_ project
+    - TEST_DEPENDS=
+    - PLAT=x86_64
+    - UNICODE_WIDTH=32
+
 language: python
+# The travis Python version is unrelated to the version we build and test
+# with.  This is set with the MB_PYTHON_VERSION variable.
+python: 3.5
+sudo: required
+dist: trusty
+services: docker
 
-sudo: false
+matrix:
+  exclude:
+    # Exclude the default Python 3.5 build
+    - python: 3.5
+  include:
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.6
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.6
+        - PLAT=i686
+    - os: linux
+      env: MB_PYTHON_VERSION=2.7
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.7
+        - UNICODE_WIDTH=16
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.7
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.7
+        - PLAT=i686
+        - UNICODE_WIDTH=16
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.3
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.3
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.4
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.4
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.5
+        - BUILD_SDIST=true
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.5
+        - PLAT=i686
+    - os: osx
+      language: generic
+      env:
+        - MB_PYTHON_VERSION=2.7
+    - os: osx
+      language: generic
+      env:
+        - MB_PYTHON_VERSION=3.4
+    - os: osx
+      language: generic
+      env:
+        - MB_PYTHON_VERSION=3.5
 
-python:
-  - '2.6'
-  - '2.7'
-  - '2.7.11'
-  - '3.3'
-  - '3.4'
-  - '3.5'
+before_install:
+  - source multibuild/common_utils.sh
+  - source multibuild/travis_steps.sh
+  - before_install
+
+install:
+  - build_wheel $REPO_DIR $PLAT
 
 script:
-  - python setup.py test
+  - install_run $PLAT
 
+after_success:
+  # if tagged, create the source distribution for the deploy stage
+  - if [ -n "$TRAVIS_TAG" ] && [ "$BUILD_SDIST" == true ]; then pip install -U setuptools; python setup.py sdist -d ${TRAVIS_BUILD_DIR}/wheelhouse; fi
+
+####  The following section enables automatic deployment on tags to GitHub Releases.
+####  You must replace the secure api_key with yours, as created by `travis setup releases`.
+####  See https://docs.travis-ci.com/user/deployment/releases
+deploy:
+  provider: releases
+  api_key:
+    secure: ZbYKyT8FEx67tDJQJVFIaSb4ijbNlB1TgIs+5cNmCt1pNbroG5VfInQnH2WaLkFZA30tPfbpj8QJkXXx5C9Fa5uT41kbUt+I3/dbcwn6q/d3Cy3Xn3auGe4GXsIjMFCgodTlFyAXZ/0+Z48fl2c2DVgRHD64FAC4QS0FfsDX1YcbD8lFZ9mArIlGDpwvYh9gGpoy0nWqsWinsztzhy1/JgT+V4zbr5lcM7OtSKWsABYqAvWtxp98SAWnN6j09clA7rfz6vUPjCeTZ+nq2vtiQe8NBArCB5KPFiSltFPdyLA05bIJBLRj2af1WMpU06lUnECU42Ob+xlUIOYUYkMyTQFxBgMtNJN+lNHvh2cg3qcdlkyj9wjCP6aM2sacqBzBOKWwofZ6rFq/iOrtkgg+zfYT4c+/dMqBaJewn/iXtHN1Y1Lx4QA1WzsnSjpH4JNHjim7y9Z4CZnRLphMAudgwdhbJ/EKusS4I5XqqvLiaXZFpALQ9QbnrZrNUiv0UJ+8Lg6eNx9+U4jdh/G5BUxQN4EmJpOM5H7eNmwaslxuAZ17AKK8Vd2mg+BBHZWagEAarLBSLeYOMqogSbcwLRs0/+QeZJvg9bbWoahIgdJaaWDBdcoXCSyTjNrcYsQ97+v+XcAI8UysdX38D3Iu8LjsJcHi5Bpbko7FfZzhUPs/8UM=
+  file_glob: true
+  file: "${TRAVIS_BUILD_DIR}/wheelhouse/*"
+  skip_cleanup: true
+  on:
+    repo: anthrotype/unicodedata2
+    tags: true
