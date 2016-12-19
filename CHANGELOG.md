@@ -1,3 +1,6 @@
+## 9.0.0-4
+ - Re-releasing 9.0.0-3 because pypi doesn't handle bad internet connections well.
+
 ## 9.0.0-3
  - Add binary packages for all platforms. Patch by Cosimo Lupo (anthrotype).
 
