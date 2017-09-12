@@ -1,5 +1,6 @@
 ## 10.0.0
  - Upgrade to unicode 10.0.0
+ - Remove Python 2.6 support as wheel no longer supports python 2.6.
 
 ## 9.0.0-4
  - Re-releasing 9.0.0-3 because pypi doesn't handle bad internet connections well.
