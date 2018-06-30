@@ -1,3 +1,7 @@
+
+## 11.0.0
+ - Upgrade to unicode 11.0.0
+
 ## 10.0.0-2
  - Wheel for python 3.6
 
