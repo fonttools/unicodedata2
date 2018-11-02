@@ -105,6 +105,7 @@ after_success:
   - |
     if [ -n "$TRAVIS_TAG" ] && [ "$TRAVIS_REPO_SLUG" == "mikekap/unicodedata2" ]; then
       pip install --upgrade twine
+      cd "${TRAVIS_BUILD_DIR}"
       twine upload wheelhouse/*.whl
       if [ "$BUILD_SDIST" == true ]; then
         pip install --upgrade setuptools
