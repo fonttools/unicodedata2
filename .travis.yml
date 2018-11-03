@@ -8,6 +8,8 @@ env:
     - TEST_DEPENDS=
     - PLAT=x86_64
     - UNICODE_WIDTH=32
+    - TWINE_USERNAME="anthrotype"
+    - secure: fzb2opRX/TNT3yRe/n5J7jlctyvrxpHNdh0/RdOuJxp+Oj0EgtxASgc4vv0FHetzrqP7oCiyxOXlq0TqEnpNq934SJ+VHSDcD9EUXe8qhwN+NGEx6ukk24HP6eA50We20797ukUGhX+ZUoOosl4Ws9RU20PNHbdfANW0RnnlG80=
 
 language: python
 # The travis Python version is unrelated to the version we build and test
@@ -99,19 +101,15 @@ script:
   - install_run $PLAT
 
 after_success:
-  # if tagged, create the source distribution for the deploy stage
-  - if [ -n "$TRAVIS_TAG" ] && [ "$BUILD_SDIST" == true ]; then pip install -U setuptools; python setup.py sdist -d ${TRAVIS_BUILD_DIR}/wheelhouse; fi
-
-####  The following section enables automatic deployment on tags to GitHub Releases.
-####  You must replace the secure api_key with yours, as created by `travis setup releases`.
-####  See https://docs.travis-ci.com/user/deployment/releases
-deploy:
-  provider: releases
-  api_key:
-    secure: TjjGgsA4BIb1A92WSgKWrLR4+mQNEezNpW5n4GM3qoU4DSE2LEaYkkpYV/a75WXaQXHyx77M5SZotjw0f09D200ku3ZyjLZpa7hv2tY4He/tNuD8Lyz0dbjDrWX3qksL0iv+m8nWBI37ElQEwXdULMoa6B9dQ0e1zot0bpfIxM0=
-  file_glob: true
-  file: "${TRAVIS_BUILD_DIR}/wheelhouse/*"
-  skip_cleanup: true
-  on:
-    repo: mikekap/unicodedata2
-    tags: true
+  # if tagged commit, upload distribution to PyPI
+  - |
+    if [ -n "$TRAVIS_TAG" ] && [ "$TRAVIS_REPO_SLUG" == "mikekap/unicodedata2" ]; then
+      pip install --upgrade twine
+      cd "${TRAVIS_BUILD_DIR}"
+      twine upload wheelhouse/*.whl
+      if [ "$BUILD_SDIST" == true ]; then
+        pip install --upgrade setuptools
+        python setup.py --quiet sdist --dist-dir dist
+        twine upload dist/*.zip
+      fi
+    fi
