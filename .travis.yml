@@ -110,6 +110,6 @@ after_success:
       if [ "$BUILD_SDIST" == true ]; then
         pip install --upgrade setuptools
         python setup.py --quiet sdist --dist-dir dist
-        twine upload dist/*.zip
+        twine upload dist/*.tar.gz
       fi
     fi
