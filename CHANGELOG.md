@@ -1,4 +1,7 @@
 
+## 12.0.0
+ - Upgrade to unicode 12.0.0
+
 ## 11.0.0
  - Upgrade to unicode 11.0.0
  - Remove Python 3.3 support as wheel no longer supports Python 3.3.
