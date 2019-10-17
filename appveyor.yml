@@ -60,7 +60,7 @@ install:
   - "python -m pip install --disable-pip-version-check --user --upgrade pip"
 
   # Upgrade setuptools, wheel and virtualenv
-  - "pip install --upgrade setuptools wheel virtualenv"
+  - "python -m pip install --upgrade setuptools wheel virtualenv"
 
   # Create new virtual environment and activate it
   - "python -m virtualenv venv"
