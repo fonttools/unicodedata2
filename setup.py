@@ -14,7 +14,7 @@ module1 = Extension('unicodedata2',
 
 setup (name = "unicodedata2",
        version = "12.1.0",
-       description = "Unicodedata backport for python 2/3 updated to the latest unicode version.",
+       description = "Unicodedata backport for Python 2/3 updated to the latest Unicode version.",
        ext_modules = [module1],
        author="Mike Kaplinskiy",
        author_email="mike.kaplinskiy@gmail.com",
