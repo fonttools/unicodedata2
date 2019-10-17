@@ -1,4 +1,8 @@
 
+## 12.1.0
+ - Upgrade to unicode 12.1.0
+ - Remove Python 3.4 support as multibuild no longer supports Python 3.4.
+
 ## 12.0.0
  - Upgrade to unicode 12.0.0
 

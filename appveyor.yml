@@ -9,14 +9,6 @@ environment:
       PYTHON_VERSION: "2.7.x"
       PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Python34"
-      PYTHON_VERSION: "3.4.x"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python34-x64"
-      PYTHON_VERSION: "3.4.x"
-      PYTHON_ARCH: "64"
-
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5.x"
       PYTHON_ARCH: "32"
@@ -60,7 +52,7 @@ install:
   - "python -m pip install --disable-pip-version-check --user --upgrade pip"
 
   # Upgrade setuptools, wheel and virtualenv
-  - "pip install --upgrade setuptools wheel virtualenv"
+  - "python -m pip install --upgrade setuptools wheel virtualenv"
 
   # Create new virtual environment and activate it
   - "python -m virtualenv venv"
