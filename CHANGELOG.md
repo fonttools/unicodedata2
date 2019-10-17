@@ -1,4 +1,7 @@
 
+## 12.1.0
+ - Upgrade to unicode 12.1.0
+
 ## 12.0.0
  - Upgrade to unicode 12.0.0
 
