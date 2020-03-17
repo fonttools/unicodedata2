@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 import sys
 import unittest
 import hashlib
+from test.support import requires_resource
 
 encoding = 'utf-8'
 errors = 'surrogatepass'
@@ -36,12 +37,14 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
     # Update this if the database changes. Make sure to do a full rebuild
     # (e.g. 'make distclean && make') to get the correct checksum.
-    expectedchecksum = 'c44a49ca7c5cb6441640fe174ede604b45028652'
+    expectedchecksum = 'd1e37a2854df60ac607b47b51189b9bf1b54bfdb'
+
+    @requires_resource('cpu')
     def test_function_checksum(self):
         data = []
         h = hashlib.sha1()
 
-        for i in range(0x10000):
+        for i in range(sys.maxunicode + 1):
             char = chr(i)
             data = [
                 # Properties
