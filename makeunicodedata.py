@@ -41,7 +41,7 @@ SCRIPT = sys.argv[0]
 VERSION = "3.3"
 
 # The Unicode Database
-UNIDATA_VERSION = "12.1.0"
+UNIDATA_VERSION = "13.0.0"
 UNICODE_DATA = "UnicodeData%s.txt"
 COMPOSITION_EXCLUSIONS = "CompositionExclusions%s.txt"
 EASTASIAN_WIDTH = "EastAsianWidth%s.txt"
@@ -97,13 +97,14 @@ EXTENDED_CASE_MASK = 0x4000
 
 # these ranges need to match unicodedata.c:is_unified_ideograph
 cjk_ranges = [
-    ('3400', '4DB5'),
-    ('4E00', '9FEF'),
-    ('20000', '2A6D6'),
+    ('3400', '4DBF'),
+    ('4E00', '9FFC'),
+    ('20000', '2A6DD'),
     ('2A700', '2B734'),
     ('2B740', '2B81D'),
     ('2B820', '2CEA1'),
     ('2CEB0', '2EBE0'),
+    ('30000', '3134A'),
 ]
 
 
