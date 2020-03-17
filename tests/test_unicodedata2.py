@@ -16,8 +16,42 @@ from test.support import requires_resource
 encoding = 'utf-8'
 errors = 'surrogatepass'
 
+MAX_UNICODE_UCS4 = 0x10FFFF
+
 if sys.version_info < (3,):
     chr = unichr
+
+if sys.maxunicode < MAX_UNICODE_UCS4:
+    # workarounds for Python "narrow" builds with UCS2-only support.
+
+    _narrow_unichr = chr
+
+    def chr(i):
+        """
+        Return the unicode character whose Unicode code is the integer 'i'.
+        The valid range is 0 to 0x10FFFF inclusive.
+        >>> _narrow_unichr(0xFFFF + 1)
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in ?
+        ValueError: unichr() arg not in range(0x10000) (narrow Python build)
+        >>> chr(0xFFFF + 1) == u'\U00010000'
+        True
+        >>> chr(1114111) == u'\U0010FFFF'
+        True
+        >>> chr(0x10FFFF + 1)
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in ?
+        ValueError: chr() arg not in range(0x110000)
+        """
+        try:
+            return _narrow_unichr(i)
+        except ValueError:
+            try:
+                padded_hex_str = hex(i)[2:].zfill(8)
+                escape_str = "\\U" + padded_hex_str
+                return escape_str.decode("unicode-escape")
+            except UnicodeDecodeError:
+                raise ValueError('chr() arg not in range(0x110000)')
 
 
 ### Run tests
@@ -44,7 +78,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         data = []
         h = hashlib.sha1()
 
-        for i in range(sys.maxunicode + 1):
+        for i in range(MAX_UNICODE_UCS4 + 1):
             char = chr(i)
             data = [
                 # Properties
