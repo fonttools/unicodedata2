@@ -15,8 +15,7 @@ language: python
 # The travis Python version is unrelated to the version we build and test
 # with.  This is set with the MB_PYTHON_VERSION variable.
 python: 3.5
-sudo: required
-dist: trusty
+dist: xenial
 services: docker
 
 matrix:
@@ -59,6 +58,9 @@ matrix:
         - MB_PYTHON_VERSION=3.7
     - os: linux
       env:
+        - MB_PYTHON_VERSION=3.8
+    - os: linux
+      env:
         - MB_PYTHON_VERSION=3.7
         - PLAT=i686
     - os: osx
@@ -77,6 +79,10 @@ matrix:
       language: generic
       env:
         - MB_PYTHON_VERSION=3.7
+    - os: osx
+      language: generic
+      env:
+        - MB_PYTHON_VERSION=3.8
 
 before_install:
   - source multibuild/common_utils.sh
