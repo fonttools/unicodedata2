@@ -1,3 +1,5 @@
+## 13.0.0
+ - Upgrade to Unicode 13.0.0
 
 ## 12.1.0
  - Upgrade to Unicode 12.1.0
