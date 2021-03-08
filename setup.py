@@ -26,7 +26,7 @@ module1 = Extension(
 
 setup(
     name="unicodedata2",
-    version="13.0.0-2",
+    version="13.0.0-3",
     description="Unicodedata backport for Python 2/3 updated to the latest Unicode version.",
     long_description=long_description,
     long_description_content_type="text/markdown",

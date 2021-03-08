@@ -1,3 +1,6 @@
+## 13.0.0-3
+ - Port https://github.com/python/cpython/commit/d134809cd3764c6a634eab7bb8995e3e2eff14d5 to unicodedata2
+
 ## 13.0.0
  - Upgrade to Unicode 13.0.0
 
