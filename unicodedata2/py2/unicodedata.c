@@ -17,7 +17,13 @@
 #include "structmember.h"
 #include "unicodectype.h"
 
+#ifdef MS_WINDOWS
+typedef int bool;
+#define true 1
+#define false 0
+#else
 #include <stdbool.h>
+#endif
 
 #if PY_MAJOR_VERSION == 2 && (PY_MINOR_VERSION < 7 || PY_MICRO_VERSION < 3)
 #define Py_TOUPPER(c) toupper(c)

@@ -19,7 +19,13 @@
 #include "structmember.h"
 #include "unicodectype.h"
 
+#ifdef MS_WINDOWS
+typedef int bool;
+#define true 1
+#define false 0
+#else
 #include <stdbool.h>
+#endif
 
 _Py_IDENTIFIER(NFC);
 _Py_IDENTIFIER(NFD);
