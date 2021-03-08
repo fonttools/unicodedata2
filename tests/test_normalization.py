@@ -6,7 +6,6 @@ Taken from cpython test_normalization.py.
 from test.support import open_urlresource
 import unittest
 
-from http.client import HTTPException
 import sys
 from unicodedata2 import normalize, is_normalized, unidata_version
 
@@ -32,6 +31,8 @@ def NFD(str):
 def NFKD(str):
     return normalize("NFKD", str)
 
+chr = chr if sys.version_info[0] >= 3 else unichr
+
 def unistr(data):
     data = [int(x, 16) for x in data.split(" ")]
     for x in data:
@@ -43,13 +44,12 @@ class NormalizationTest(unittest.TestCase):
     def test_main(self):
         # Hit the exception early
         try:
-            testdata = open_urlresource(TESTDATAURL, encoding="utf-8",
-                                        check=check_version)
-        except PermissionError:
-            self.skipTest(f"Permission error when downloading {TESTDATAURL} "
-                          f"into the test data directory")
-        except (OSError, HTTPException):
-            self.fail(f"Could not retrieve {TESTDATAURL}")
+            kwargs = {}
+            if sys.version_info[0] >= 3:
+                kwargs['encoding'] = "utf-8"
+            testdata = open_urlresource(TESTDATAURL, check=check_version, **kwargs)
+        except OSError:
+            self.fail("Could not retrieve {TESTDATAURL}".format(**globals()))
 
         with testdata:
             self.run_normalization_tests(testdata)
@@ -115,7 +115,7 @@ class NormalizationTest(unittest.TestCase):
 
     def test_bug_834676(self):
         # Check for bug 834676
-        normalize('NFC', '\ud55c\uae00')
+        normalize('NFC', u'\ud55c\uae00')
 
 
 if __name__ == "__main__":
