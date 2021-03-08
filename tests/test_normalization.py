@@ -3,7 +3,10 @@ Taken from cpython test_normalization.py.
 (c) 2021 PSF
 """
 
-from test.support import open_urlresource
+try:
+    from urllib.request import urlretrieve
+except:
+    from urllib import urlretrieve
 import unittest
 
 import sys
@@ -47,7 +50,10 @@ class NormalizationTest(unittest.TestCase):
             kwargs = {}
             if sys.version_info[0] >= 3:
                 kwargs['encoding'] = "utf-8"
-            testdata = open_urlresource(TESTDATAURL, check=check_version, **kwargs)
+            filename, _ = urlretrieve(TESTDATAURL)
+            testdata = open(filename, **kwargs)
+            if not check_version(testdata):
+                raise ValueError('Bad test data file')
         except OSError:
             self.fail("Could not retrieve {TESTDATAURL}".format(**globals()))
 
