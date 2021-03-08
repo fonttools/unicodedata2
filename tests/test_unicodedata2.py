@@ -199,6 +199,9 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         b = 'C\u0338' * 20  + '\xC7'
         self.assertEqual(self.db.normalize('NFC', a), b)
 
+    # For tests of unicodedata.is_normalized / self.db.is_normalized ,
+    # see test_normalization.py .
+
     def test_east_asian_width(self):
         eaw = self.db.east_asian_width
         self.assertRaises(TypeError, eaw, b'a')
