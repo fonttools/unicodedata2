@@ -768,11 +768,6 @@ static QuickcheckResult
 is_normalized_quickcheck(PyObject *self, PyObject *input, bool nfc, bool k,
                          bool yes_only)
 {
-    /* UCD 3.2.0 is requested, quickchecks must be disabled. */
-    if (self != NULL) {
-        return 0;
-    }
-
     Py_ssize_t i, len;
     Py_UNICODE *data;
     unsigned char prev_combining = 0;
@@ -782,6 +777,11 @@ is_normalized_quickcheck(PyObject *self, PyObject *input, bool nfc, bool k,
 
     QuickcheckResult result = YES; /* certainly normalized, unless we find something */
 
+    /* UCD 3.2.0 is requested, quickchecks must be disabled. */
+    if (self != NULL) {
+        return 0;
+    }
+
     i = 0;
     data = PyUnicode_AS_UNICODE(input);
     len = PyUnicode_GET_SIZE(input);
@@ -790,11 +790,12 @@ is_normalized_quickcheck(PyObject *self, PyObject *input, bool nfc, bool k,
         const _PyUnicode_DatabaseRecord *record = _getrecord_ex(ch);
 
         unsigned char combining = record->combining;
+        unsigned char quickcheck_whole = record->normalization_quick_check;
+
         if (combining && prev_combining > combining)
             return NO; /* non-canonical sort order, not normalized */
         prev_combining = combining;
 
-        unsigned char quickcheck_whole = record->normalization_quick_check;
         if (yes_only) {
             if (quickcheck_whole & (3 << quickcheck_shift))
                 return MAYBE;
@@ -826,6 +827,14 @@ unicodedata_is_normalized(PyObject *self, PyObject *args)
     char *form;
     PyObject *input;
 
+    PyObject *result;
+    bool nfc = false;
+    bool k = false;
+    QuickcheckResult m;
+
+    PyObject *cmp;
+    int match = 0;
+
     if(!PyArg_ParseTuple(args, "sO!:is_normalized",
                          &form, &PyUnicode_Type, &input))
         return NULL;
@@ -834,14 +843,6 @@ unicodedata_is_normalized(PyObject *self, PyObject *args)
         /* special case empty input strings. */
         Py_RETURN_TRUE;
     }
-
-    PyObject *result;
-    bool nfc = false;
-    bool k = false;
-    QuickcheckResult m;
-
-    PyObject *cmp;
-    int match = 0;
 
     if (strcmp(form, "NFC") == 0) {
         nfc = true;
