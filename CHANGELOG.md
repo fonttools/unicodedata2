@@ -1,6 +1,6 @@
 ## 13.0.0-3
  - Port https://github.com/python/cpython/commit/d134809cd3764c6a634eab7bb8995e3e2eff14d5 to unicodedata2
- - Port is_normalized to unicodedata2 (only for Py3 - PRs welcome!)
+ - Port is_normalized to unicodedata2 (only for Py3 - PRs welcome!) (https://github.com/python/cpython/commit/2810dd7be9876236f74ac80716d113572c9098dd & https://github.com/python/cpython/commit/2f09413947d1ce0043de62ed2346f9a2b4e5880b)
 
 ## 13.0.0
  - Upgrade to Unicode 13.0.0
