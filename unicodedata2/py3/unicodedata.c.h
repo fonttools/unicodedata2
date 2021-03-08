@@ -284,6 +284,38 @@ exit:
     return return_value;
 }
 
+PyDoc_STRVAR(unicodedata_UCD_is_normalized__doc__,
+"is_normalized($self, form, unistr, /)\n"
+"--\n"
+"\n"
+"Return whether the Unicode string unistr is in the normal form \'form\'.\n"
+"\n"
+"Valid values for form are \'NFC\', \'NFKC\', \'NFD\', and \'NFKD\'.");
+
+#define UNICODEDATA_UCD_IS_NORMALIZED_METHODDEF    \
+    {"is_normalized", (PyCFunction)unicodedata_UCD_is_normalized, METH_VARARGS, unicodedata_UCD_is_normalized__doc__},
+
+static PyObject *
+unicodedata_UCD_is_normalized_impl(PyObject *self, PyObject *form,
+                                   PyObject *input);
+
+static PyObject *
+unicodedata_UCD_is_normalized(PyObject *self, PyObject *args)
+{
+    PyObject *return_value = NULL;
+    PyObject *form;
+    PyObject *input;
+
+    if (!PyArg_ParseTuple(args, "UU:is_normalized",
+        &form, &input)) {
+        goto exit;
+    }
+    return_value = unicodedata_UCD_is_normalized_impl(self, form, input);
+
+exit:
+    return return_value;
+}
+
 PyDoc_STRVAR(unicodedata_UCD_normalize__doc__,
 "normalize($self, form, unistr, /)\n"
 "--\n"
@@ -296,18 +328,18 @@ PyDoc_STRVAR(unicodedata_UCD_normalize__doc__,
     {"normalize", (PyCFunction)unicodedata_UCD_normalize, METH_VARARGS, unicodedata_UCD_normalize__doc__},
 
 static PyObject *
-unicodedata_UCD_normalize_impl(PyObject *self, const char *form,
+unicodedata_UCD_normalize_impl(PyObject *self, PyObject *form,
                                PyObject *input);
 
 static PyObject *
 unicodedata_UCD_normalize(PyObject *self, PyObject *args)
 {
     PyObject *return_value = NULL;
-    const char *form;
+    PyObject *form;
     PyObject *input;
 
-    if (!PyArg_ParseTuple(args, "sO!:normalize",
-        &form, &PyUnicode_Type, &input)) {
+    if (!PyArg_ParseTuple(args, "UU:normalize",
+        &form, &input)) {
         goto exit;
     }
     return_value = unicodedata_UCD_normalize_impl(self, form, input);
@@ -379,5 +411,5 @@ unicodedata_UCD_lookup(PyObject *self, PyObject *arg)
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=5313ce129da87b2f input=a9049054013a1b77]*/
+/*[clinic end generated code: output=2c5fbf597c18f6b8 input=a9049054013a1b77]*/
 
