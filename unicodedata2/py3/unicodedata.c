@@ -16,7 +16,6 @@
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
-#include "ucnhash.h"
 #include "structmember.h"
 #include "unicodectype.h"
 
@@ -66,6 +65,8 @@ _getrecord_ex(Py_UCS4 code)
 
     return &_PyUnicode_Database_Records[index];
 }
+
+#include "pypy_shims.h"
 
 /* ------------- Previous-version API ------------------------------------- */
 typedef struct previous_version {
