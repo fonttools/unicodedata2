@@ -16,6 +16,9 @@
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
+#ifndef PYPY_VERSION
+#include "ucnhash.h"
+#endif
 #include "structmember.h"
 #include "unicodectype.h"
 
