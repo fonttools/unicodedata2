@@ -97,20 +97,6 @@ const unsigned char _Py_ctype_toupper[256] = {
     0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
 };
 
-int _PyUnicode_ToDecimalDigit(Py_UCS4 ch)
-{
-    const _PyUnicode_TypeRecord *ctype = gettyperecord(ch);
-
-    return (ctype->flags & DECIMAL_MASK) ? ctype->decimal : -1;
-}
-
-int _PyUnicode_ToDigit(Py_UCS4 ch)
-{
-    const _PyUnicode_TypeRecord *ctype = gettyperecord(ch);
-
-    return (ctype->flags & DIGIT_MASK) ? ctype->digit : -1;
-}
-
 #endif
 
 
@@ -168,7 +154,7 @@ int _PyUnicode2_ToDecimalDigit(Py_UCS4 ch)
 
 int _PyUnicode2_IsDecimalDigit(Py_UCS4 ch)
 {
-    if (_PyUnicode_ToDecimalDigit(ch) < 0)
+    if (_PyUnicode2_ToDecimalDigit(ch) < 0)
         return 0;
     return 1;
 }
@@ -185,7 +171,7 @@ int _PyUnicode2_ToDigit(Py_UCS4 ch)
 
 int _PyUnicode2_IsDigit(Py_UCS4 ch)
 {
-    if (_PyUnicode_ToDigit(ch) < 0)
+    if (_PyUnicode2_ToDigit(ch) < 0)
         return 0;
     return 1;
 }
