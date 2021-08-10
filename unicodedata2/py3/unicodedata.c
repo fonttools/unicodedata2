@@ -105,6 +105,10 @@ new_previous_version(const char*name, const change_record* (*getrecord)(Py_UCS4)
 }
 
 
+#ifdef PYPY_VERSION
+#include "pypy_ctype.h"
+#endif
+
 /* --- Module API --------------------------------------------------------- */
 
 /*[clinic input]
