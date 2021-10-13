@@ -1,4 +1,4 @@
-[![Travis Build Status](https://travis-ci.org/mikekap/unicodedata2.svg?branch=master)](https://travis-ci.org/mikekap/unicodedata2)
+[![Travis Build Status](https://travis-ci.org/fonttools/unicodedata2.svg?branch=master)](https://travis-ci.org/fonttools/unicodedata2)
 
 unicodedata2
 ============
