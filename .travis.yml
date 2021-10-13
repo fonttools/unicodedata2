@@ -22,13 +22,6 @@ matrix:
   include:
     - os: linux
       env:
-        - MB_PYTHON_VERSION=3.5
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=3.5
-        - PLAT=i686
-    - os: linux
-      env:
         - MB_PYTHON_VERSION=3.6
         - BUILD_SDIST=true
     - os: linux
@@ -45,10 +38,6 @@ matrix:
       env:
         - MB_PYTHON_VERSION=3.7
         - PLAT=i686
-    - os: osx
-      language: generic
-      env:
-        - MB_PYTHON_VERSION=3.5
     - os: osx
       language: generic
       env:
@@ -76,7 +65,7 @@ script:
 after_success:
   # if tagged commit, upload distribution to PyPI
   - |
-    if [ -n "$TRAVIS_TAG" ] && [ "$TRAVIS_REPO_SLUG" == "mikekap/unicodedata2" ]; then
+    if [ -n "$TRAVIS_TAG" ] && [ "$TRAVIS_REPO_SLUG" == "fonttools/unicodedata2" ]; then
       pip install --upgrade twine
       cd "${TRAVIS_BUILD_DIR}"
       twine upload wheelhouse/*.whl
