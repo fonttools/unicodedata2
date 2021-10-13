@@ -16,7 +16,9 @@
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
+#ifndef PYPY_VERSION
 #include "ucnhash.h"
+#endif
 #include "structmember.h"
 #include "unicodectype.h"
 
@@ -102,6 +104,10 @@ new_previous_version(const char*name, const change_record* (*getrecord)(Py_UCS4)
         return (PyObject*)self;
 }
 
+
+#ifdef PYPY_VERSION
+#include "pypy_ctype.h"
+#endif
 
 /* --- Module API --------------------------------------------------------- */
 

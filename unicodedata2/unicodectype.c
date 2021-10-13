@@ -112,7 +112,7 @@ int _PyUnicode2_ToDecimalDigit(Py_UCS4 ch)
 
 int _PyUnicode2_IsDecimalDigit(Py_UCS4 ch)
 {
-    if (_PyUnicode_ToDecimalDigit(ch) < 0)
+    if (_PyUnicode2_ToDecimalDigit(ch) < 0)
         return 0;
     return 1;
 }
@@ -129,7 +129,7 @@ int _PyUnicode2_ToDigit(Py_UCS4 ch)
 
 int _PyUnicode2_IsDigit(Py_UCS4 ch)
 {
-    if (_PyUnicode_ToDigit(ch) < 0)
+    if (_PyUnicode2_ToDigit(ch) < 0)
         return 0;
     return 1;
 }
