@@ -55,3 +55,5 @@ target/
 
 # Downloaded unicode files
 data/
+
+venv*

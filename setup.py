@@ -1,3 +1,4 @@
+import sys
 from setuptools import setup, Extension
 
 # concatenate README.md and CHANGELOG.md into long_description so they are
@@ -8,12 +9,18 @@ long_description += "\nChangelog\n=========\n"
 with open("CHANGELOG.md", "r", encoding="utf-8") as changelog:
     long_description += changelog.read()
 
+module_sources = [
+    "./unicodedata2/unicodedata.c",
+    "./unicodedata2/unicodectype.c",
+]
+
+is_pypy = hasattr(sys, "pypy_version_info")
+if is_pypy:
+    module_sources.append("./unicodedata2/pypy_ctype.c")
+
 module1 = Extension(
     "unicodedata2",
-    sources=[
-        "./unicodedata2/unicodedata.c",
-        "./unicodedata2/unicodectype.c",
-    ],
+    sources=module_sources,
     include_dirs=["./unicodedata2/"],
 )
 
