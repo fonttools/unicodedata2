@@ -17,9 +17,6 @@ errors = 'surrogatepass'
 
 MAX_UNICODE_UCS4 = 0x10FFFF
 
-if sys.version_info < (3,):
-    chr = unichr
-
 if sys.maxunicode < MAX_UNICODE_UCS4:
     # workarounds for Python "narrow" builds with UCS2-only support.
 

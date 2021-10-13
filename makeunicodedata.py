@@ -1,5 +1,5 @@
 #
-# (re)generate unicode property and type databases. Taken from python 3.4 source.
+# (re)generate unicode property and type databases
 #
 # This script converts Unicode database files to Modules/unicodedata_db.h,
 # Modules/unicodename_db.h, and Objects/unicodetype_db.h
@@ -26,9 +26,6 @@
 # written by Fredrik Lundh (fredrik@pythonware.com)
 #
 
-from __future__ import print_function, unicode_literals
-
-import codecs
 import os
 import sys
 import zipfile
@@ -41,6 +38,11 @@ SCRIPT = sys.argv[0]
 VERSION = "3.3"
 
 # The Unicode Database
+# --------------------
+# When changing UCD version please update
+#   * Doc/library/stdtypes.rst, and
+#   * Doc/library/unicodedata.rst
+#   * Doc/reference/lexical_analysis.rst (two occurrences)
 UNIDATA_VERSION = "13.0.0"
 UNICODE_DATA = "UnicodeData%s.txt"
 COMPOSITION_EXCLUSIONS = "CompositionExclusions%s.txt"
@@ -137,7 +139,7 @@ def makeunicodedata(unicode, trace):
     cache = {0: dummy}
     index = [0] * len(unicode.chars)
 
-    FILE = "unicodedata2/py2/unicodedata_db.h"
+    FILE = "unicodedata2/unicodedata_db.h"
 
     print("--- Preparing", FILE, "...")
 
@@ -385,7 +387,7 @@ def makeunicodedata(unicode, trace):
 
 def makeunicodetype(unicode, trace):
 
-    FILE = "unicodedata2/py2/unicodetype_db.h"
+    FILE = "unicodedata2/unicodetype_db.h"
 
     print("--- Preparing", FILE, "...")
 
@@ -597,7 +599,7 @@ def makeunicodetype(unicode, trace):
 
 def makeunicodename(unicode, trace):
 
-    FILE = "unicodedata2/py2/unicodename_db.h"
+    FILE = "unicodedata2/unicodename_db.h"
 
     print("--- Preparing", FILE, "...")
 
@@ -678,7 +680,7 @@ def makeunicodename(unicode, trace):
     for w, x in wordlist:
         # encoding: bit 7 indicates last character in word (chr(128)
         # indicates the last character in an entire string)
-        ww = w[:-1] + unichr(ord(w[-1])+128)
+        ww = w[:-1] + chr(ord(w[-1])+128)
         # reuse string tails, when possible
         o = lexicon.find(ww)
         if o < 0:
@@ -772,7 +774,7 @@ def makeunicodename(unicode, trace):
         fprint(dedent("""
             typedef struct NamedSequence {
                 int seqlen;
-                Py_UNICODE seq[4];
+                Py_UCS2 seq[4];
             } named_sequence;
             """))
 
@@ -886,22 +888,16 @@ DATA_DIR = os.path.join('data')
 def open_data(template, version):
     local = os.path.join(DATA_DIR, template % ('-'+version,))
     if not os.path.exists(local):
-        import urllib
+        import urllib.request
         if version == '3.2.0':
             # irregular url structure
-            url = ('https://www.unicode.org/Public/3.2-Update/'+template) % ('-'+version,)
+            url = ('http://www.unicode.org/Public/3.2-Update/'+template) % ('-'+version,)
         else:
-            url = ('https://www.unicode.org/Public/%s/ucd/'+template) % (version, '')
-        # os.makedirs(DATA_DIR, exist_ok=True)
-        try:
-            os.makedirs(DATA_DIR)
-        except OSError as e:
-            import errno
-            if e.errno != errno.EEXIST:
-                raise
-        urllib.urlretrieve(url, filename=local)
+            url = ('http://www.unicode.org/Public/%s/ucd/'+template) % (version, '')
+        os.makedirs(DATA_DIR, exist_ok=True)
+        urllib.request.urlretrieve(url, filename=local)
     if local.endswith('.txt'):
-        return codecs.open(local, encoding='utf-8')
+        return open(local, encoding='utf-8')
     else:
         # Unihan.zip
         return open(local, 'rb')
