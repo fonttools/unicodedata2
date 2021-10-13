@@ -33,9 +33,9 @@ setup(
     ext_modules=[module1],
     author="Mike Kaplinskiy",
     author_email="mike.kaplinskiy@gmail.com",
-    download_url="http://github.com/mikekap/unicodedata2",
+    download_url="http://github.com/fonttools/unicodedata2",
     license="Apache License 2.0",
     platforms=["any"],
-    url="http://github.com/mikekap/unicodedata2",
+    url="http://github.com/fonttools/unicodedata2",
     test_suite="tests",
 )

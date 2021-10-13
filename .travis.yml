@@ -95,7 +95,7 @@ script:
 after_success:
   # if tagged commit, upload distribution to PyPI
   - |
-    if [ -n "$TRAVIS_TAG" ] && [ "$TRAVIS_REPO_SLUG" == "mikekap/unicodedata2" ]; then
+    if [ -n "$TRAVIS_TAG" ] && [ "$TRAVIS_REPO_SLUG" == "fonttools/unicodedata2" ]; then
       pip install --upgrade twine
       cd "${TRAVIS_BUILD_DIR}"
       twine upload wheelhouse/*.whl
