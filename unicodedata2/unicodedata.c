@@ -17,7 +17,12 @@
 
 #include "Python.h"
 #ifndef PYPY_VERSION
+#if PY_MINOR_VERSION < 10
 #include "ucnhash.h"
+#else
+#define Py_BUILD_CORE
+#include "internal/pycore_ucnhash.h"
+#endif
 #endif
 #include "structmember.h"
 #include "unicodectype.h"
