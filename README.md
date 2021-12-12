@@ -1,4 +1,5 @@
-[![Travis Build Status](https://travis-ci.org/fonttools/unicodedata2.svg?branch=master)](https://travis-ci.org/fonttools/unicodedata2)
+[![Githun CI Status](https://github.com/fonttools/unicodedata2/workflows/Build%20+%20Deploy/badge.svg)](https://github.com/fonttools/unicodedata2/actions?query=workflow%3A%22Build+%2B+Deploy%22)
+[![PyPI](https://img.shields.io/pypi/v/unicodedata2.svg)](https://pypi.org/project/unicodedata2/)
 
 unicodedata2
 ============
