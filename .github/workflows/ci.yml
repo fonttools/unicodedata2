@@ -3,7 +3,7 @@ name: Build + Deploy
 on:
   push:
     branches: [master]
-    tags: ["v*.*.*"]
+    tags: ["*"]
   pull_request:
     branches: [master]
 
@@ -77,7 +77,7 @@ jobs:
 
   deploy:
     # only run if the commit is tagged...
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.ref_type == 'tag'
     # ... and all build jobs completed successfully
     needs: [build_wheels, build_aarch64_wheels]
     runs-on: ubuntu-latest
