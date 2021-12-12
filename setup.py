@@ -38,4 +38,12 @@ setup(
     platforms=["any"],
     url="http://github.com/fonttools/unicodedata2",
     test_suite="tests",
+    extras_require={
+        "testing": [
+            "pytest",
+            "coverage",
+            "pytest-xdist",
+            "pytest-randomly",
+        ],
+    },
 )
