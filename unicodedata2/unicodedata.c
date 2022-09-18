@@ -1362,7 +1362,7 @@ PyInit_unicodedata2(void)
 {
     PyObject *m, *v;
 
-    Py_SET_TYPE(&UCD_Type, &PyType_Type);
+    Py_TYPE(&UCD_Type) = &PyType_Type;
 
     m = PyModule_Create(&unicodedatamodule);
     if (!m)
