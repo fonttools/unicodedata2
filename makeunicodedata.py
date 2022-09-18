@@ -26,13 +26,14 @@
 # written by Fredrik Lundh (fredrik@pythonware.com)
 #
 
+import dataclasses
 import os
 import sys
 import zipfile
 
-from collections import namedtuple
 from functools import partial
 from textwrap import dedent
+from typing import Iterator, List, Optional, Set, Tuple
 
 SCRIPT = sys.argv[0]
 VERSION = "3.3"
@@ -820,9 +821,9 @@ def merge_old_version(version, new, old):
             continue
         # check characters that differ
         if old.table[i] != new.table[i]:
-            for k, field_name in enumerate(UcdRecord._fields):
-                value = getattr(old.table[i], field_name)
-                new_value = getattr(new.table[i], field_name)
+            for k, field in enumerate(dataclasses.fields(UcdRecord)):
+                value = getattr(old.table[i], field.name)
+                new_value = getattr(new.table[i], field.name)
                 if value != new_value:
                     if k == 1 and i in PUA_15:
                         # the name is not set in the old.table, but in the
@@ -892,9 +893,9 @@ def open_data(template, version):
         import urllib.request
         if version == '3.2.0':
             # irregular url structure
-            url = ('http://www.unicode.org/Public/3.2-Update/'+template) % ('-'+version,)
+            url = ('https://www.unicode.org/Public/3.2-Update/'+template) % ('-'+version,)
         else:
-            url = ('http://www.unicode.org/Public/%s/ucd/'+template) % (version, '')
+            url = ('https://www.unicode.org/Public/%s/ucd/'+template) % (version, '')
         os.makedirs(DATA_DIR, exist_ok=True)
         urllib.request.urlretrieve(url, filename=local)
     if local.endswith('.txt'):
@@ -904,7 +905,7 @@ def open_data(template, version):
         return open(local, 'rb')
 
 
-def expand_range(char_range):
+def expand_range(char_range: str) -> Iterator[int]:
     '''
     Parses ranges of code points, as described in UAX #44:
       https://www.unicode.org/reports/tr44/#Code_Point_Ranges
@@ -927,11 +928,11 @@ class UcdFile:
     own separate format.
     '''
 
-    def __init__(self, template, version):
+    def __init__(self, template: str, version: str) -> None:
         self.template = template
         self.version = version
 
-    def records(self):
+    def records(self) -> Iterator[List[str]]:
         with open_data(self.template, self.version) as file:
             for line in file:
                 line = line.split('#', 1)[0].strip()
@@ -939,55 +940,53 @@ class UcdFile:
                     continue
                 yield [field.strip() for field in line.split(';')]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[List[str]]:
         return self.records()
 
-    def expanded(self):
+    def expanded(self) -> Iterator[Tuple[int, List[str]]]:
         for record in self.records():
             char_range, rest = record[0], record[1:]
             for char in expand_range(char_range):
                 yield char, rest
 
 
-class UcdRecord(namedtuple('UcdRecord', [
+@dataclasses.dataclass
+class UcdRecord:
     # 15 fields from UnicodeData.txt .  See:
     #   https://www.unicode.org/reports/tr44/#UnicodeData.txt
-    'codepoint',
-    'name',
-    'general_category',
-    'canonical_combining_class',
-    'bidi_class',
-    'decomposition_type',
-    'decomposition_mapping',
-    'numeric_type',
-    'numeric_value',
-    'bidi_mirrored',
-    'unicode_1_name',  # obsolete
-    'iso_comment',  # obsolete
-    'simple_uppercase_mapping',
-    'simple_lowercase_mapping',
-    'simple_titlecase_mapping',
+    codepoint: str
+    name: str
+    general_category: str
+    canonical_combining_class: str
+    bidi_class: str
+    decomposition_type: str
+    decomposition_mapping: str
+    numeric_type: str
+    numeric_value: str
+    bidi_mirrored: str
+    unicode_1_name: str  # obsolete
+    iso_comment: str  # obsolete
+    simple_uppercase_mapping: str
+    simple_lowercase_mapping: str
+    simple_titlecase_mapping: str
 
     # https://www.unicode.org/reports/tr44/#EastAsianWidth.txt
-    'east_asian_width',
+    east_asian_width: Optional[str]
 
     # Binary properties, as a set of those that are true.
     # Taken from multiple files:
     #   https://www.unicode.org/reports/tr44/#DerivedCoreProperties.txt
     #   https://www.unicode.org/reports/tr44/#LineBreak.txt
-    'binary_properties',
+    binary_properties: Set[str]
 
     # The Quick_Check properties related to normalization:
     #   https://www.unicode.org/reports/tr44/#Decompositions_and_Normalization
     # We store them as a bitmask.
-    'quick_check',
-])):
+    quick_check: int
 
-    @classmethod
-    def from_row(cls, row):
-        return cls(
-            *row, east_asian_width=None, binary_properties=set(), quick_check=0
-        )
+
+def from_row(row: List[str]) -> UcdRecord:
+    return UcdRecord(*row, None, set(), 0)
 
 
 # --------------------------------------------------------------------
@@ -1004,7 +1003,7 @@ class UnicodeData:
         table = [None] * 0x110000
         for s in UcdFile(UNICODE_DATA, version):
             char = int(s[0], 16)
-            table[char] = UcdRecord.from_row(s)
+            table[char] = from_row(s)
 
         cjk_ranges_found = []
 
@@ -1017,16 +1016,16 @@ class UnicodeData:
             s = table[i]
             if s:
                 if s.name[-6:] == "First>":
-                    s = table[i] = s._replace(name="")
-                    field = tuple(s)[:15]
+                    s.name = ""
+                    field = dataclasses.astuple(s)[:15]
                 elif s.name[-5:] == "Last>":
                     if s.name.startswith("<CJK Ideograph"):
                         cjk_ranges_found.append((field[0],
                                                  s.codepoint))
-                    table[i] = s._replace(name="")
+                    s.name = ""
                     field = None
             elif field:
-                table[i] = UcdRecord.from_row(('%X' % i,) + field[1:])
+                table[i] = from_row(('%X' % i,) + field[1:])
         if cjk_check and cjk_ranges != cjk_ranges_found:
             raise ValueError("CJK ranges deviate: have %r" % cjk_ranges_found)
 
@@ -1047,7 +1046,7 @@ class UnicodeData:
                 char = int(char, 16)
                 self.aliases.append((name, char))
                 # also store the name in the PUA 1
-                self.table[pua_index] = self.table[pua_index]._replace(name=name)
+                self.table[pua_index].name = name
                 pua_index += 1
             assert pua_index - NAME_ALIASES_START == len(self.aliases)
 
@@ -1066,7 +1065,7 @@ class UnicodeData:
                     "the NamedSequence struct and in unicodedata_lookup")
                 self.named_sequences.append((name, chars))
                 # also store these in the PUA 1
-                self.table[pua_index] = self.table[pua_index]._replace(name=name)
+                self.table[pua_index].name = name
                 pua_index += 1
             assert pua_index - NAMED_SEQUENCES_START == len(self.named_sequences)
 
@@ -1081,7 +1080,7 @@ class UnicodeData:
 
         for i in range(0, 0x110000):
             if table[i] is not None:
-                table[i] = table[i]._replace(east_asian_width=widths[i])
+                table[i].east_asian_width = widths[i]
 
         for char, (p,) in UcdFile(DERIVED_CORE_PROPERTIES, version).expanded():
             if table[char]:
@@ -1115,7 +1114,7 @@ class UnicodeData:
                 quickchecks[char] |= quickcheck
         for i in range(0, 0x110000):
             if table[i] is not None:
-                table[i] = table[i]._replace(quick_check=quickchecks[i])
+                table[i].quick_check = quickchecks[i]
 
         with open_data(UNIHAN, version) as file:
             zip = zipfile.ZipFile(file)
@@ -1134,7 +1133,7 @@ class UnicodeData:
             i = int(code[2:], 16)
             # Patch the numeric field
             if table[i] is not None:
-                table[i] = table[i]._replace(numeric_value=value)
+                table[i].numeric_value = value
 
         sc = self.special_casing = {}
         for data in UcdFile(SPECIAL_CASING, version):
