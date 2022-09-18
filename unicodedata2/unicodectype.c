@@ -268,7 +268,7 @@ int _PyUnicode2_ToFoldedFull(Py_UCS4 ch, Py_UCS4 *res)
             res[i] = _PyUnicode_ExtendedCase[index + i];
         return n;
     }
-    return _PyUnicode_ToLowerFull(ch, res);
+    return _PyUnicode2_ToLowerFull(ch, res);
 }
 
 int _PyUnicode2_IsCased(Py_UCS4 ch)
