@@ -6,11 +6,10 @@
 
 """
 
-from __future__ import unicode_literals
-
 import sys
 import unittest
 import hashlib
+# from test.support import script_helper
 
 encoding = 'utf-8'
 errors = 'surrogatepass'
@@ -52,6 +51,8 @@ if sys.maxunicode < MAX_UNICODE_UCS4:
 
 ### Run tests
 
+# NOTE: UnicodeMethodsTest upstream tests methods on `str` objects, and
+# is excluded from the unicodedata2 suite
 class UnicodeDatabaseTest(unittest.TestCase):
 
     def setUp(self):
@@ -67,13 +68,13 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
     # Update this if the database changes. Make sure to do a full rebuild
     # (e.g. 'make distclean && make') to get the correct checksum.
-    expectedchecksum = '42d326b3db43e0984ae6a6db02b51f4cc45f4364'
+    expectedchecksum = 'ef638fce5e02dcaa0ad14dd5034314e65f726c62'
 
     def test_function_checksum(self):
         data = []
         h = hashlib.sha1()
 
-        for i in range(MAX_UNICODE_UCS4 + 1):
+        for i in range(0x10000):
             char = chr(i)
             data = [
                 # Properties
@@ -179,7 +180,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         # which requires an external file.
 
     def test_pr29(self):
-        # https://www.unicode.org/review/pr-29.html
+        # http://www.unicode.org/review/pr-29.html
         # See issues #1054943 and #10254.
         composed = ("\u0b47\u0300\u0b3e", "\u1100\u0300\u1161",
                     'Li\u030dt-s\u1e73\u0301',
@@ -196,6 +197,19 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         b = 'C\u0338' * 20  + '\xC7'
         self.assertEqual(self.db.normalize('NFC', a), b)
 
+    def test_issue29456(self):
+        # Fix #29456
+        u1176_str_a = '\u1100\u1176\u11a8'
+        u1176_str_b = '\u1100\u1176\u11a8'
+        u11a7_str_a = '\u1100\u1175\u11a7'
+        u11a7_str_b = '\uae30\u11a7'
+        u11c3_str_a = '\u1100\u1175\u11c3'
+        u11c3_str_b = '\uae30\u11c3'
+        self.assertEqual(self.db.normalize('NFC', u1176_str_a), u1176_str_b)
+        self.assertEqual(self.db.normalize('NFC', u11a7_str_a), u11a7_str_b)
+        self.assertEqual(self.db.normalize('NFC', u11c3_str_a), u11c3_str_b)
+
+
     def test_east_asian_width(self):
         eaw = self.db.east_asian_width
         self.assertRaises(TypeError, eaw, b'a')
@@ -210,11 +224,45 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(eaw('\u2010'), 'A')
         self.assertEqual(eaw('\U00020000'), 'W')
 
+    def test_east_asian_width_unassigned(self):
+        eaw = self.db.east_asian_width
+        # unassigned
+        for char in '\u0530\u0ecf\u10c6\u20fc\uaaca\U000107bd\U000115f2':
+            self.assertEqual(eaw(char), 'N')
+            self.assertIs(self.db.name(char, None), None)
+
+        # unassigned but reserved for CJK
+        for char in '\uFA6E\uFADA\U0002A6E0\U0002FA20\U0003134B\U0003FFFD':
+            self.assertEqual(eaw(char), 'W')
+            self.assertIs(self.db.name(char, None), None)
+
+        # private use areas
+        for char in '\uE000\uF800\U000F0000\U000FFFEE\U00100000\U0010FFF0':
+            self.assertEqual(eaw(char), 'A')
+            self.assertIs(self.db.name(char, None), None)
+
     def test_east_asian_width_9_0_changes(self):
         self.assertEqual(self.db.ucd_3_2_0.east_asian_width('\u231a'), 'N')
         self.assertEqual(self.db.east_asian_width('\u231a'), 'W')
 
 class UnicodeMiscTest(UnicodeDatabaseTest):
+
+    # NOTE: this test is specific to CPython and is disabled in unicodedata2
+#     def test_failed_import_during_compiling(self):
+#         # Issue 4367
+#         # Decoding \N escapes requires the unicodedata module. If it can't be
+#         # imported, we shouldn't segfault.
+#
+#         # This program should raise a SyntaxError in the eval.
+#         code = "import sys;" \
+#             "sys.modules['unicodedata'] = None;" \
+#             """eval("'\\\\N{SOFT HYPHEN}'")"""
+#         # We use a separate process because the unicodedata module may already
+#         # have been loaded in this process.
+#         result = script_helper.assert_python_failure("-c", code)
+#         error = "SyntaxError: (unicode error) \\N escapes not supported " \
+#             "(can't load unicodedata module)"
+#         self.assertIn(error, result.err.decode("ascii"))
 
     def test_decimal_numeric_consistent(self):
         # Test that decimal and numeric are consistent,
@@ -245,6 +293,44 @@ class UnicodeMiscTest(UnicodeDatabaseTest):
     def test_bug_1704793(self):
         self.assertEqual(self.db.lookup("GOTHIC LETTER FAIHU"), '\U00010346')
 
+    def test_ucd_510(self):
+        import unicodedata2
+        # In UCD 5.1.0, a mirrored property changed wrt. UCD 3.2.0
+        self.assertTrue(unicodedata2.mirrored("\u0f3a"))
+        self.assertTrue(not unicodedata2.ucd_3_2_0.mirrored("\u0f3a"))
+        # Also, we now have two ways of representing
+        # the upper-case mapping: as delta, or as absolute value
+        self.assertTrue("a".upper()=='A')
+        self.assertTrue("\u1d79".upper()=='\ua77d')
+        self.assertTrue(".".upper()=='.')
+
+    def test_bug_5828(self):
+        self.assertEqual("\u1d79".lower(), "\u1d79")
+        # Only U+0000 should have U+0000 as its upper/lower/titlecase variant
+        self.assertEqual(
+            [
+                c for c in range(sys.maxunicode+1)
+                if "\x00" in chr(c).lower()+chr(c).upper()+chr(c).title()
+            ],
+            [0]
+        )
+
+    def test_bug_4971(self):
+        # LETTER DZ WITH CARON: DZ, Dz, dz
+        self.assertEqual("\u01c4".title(), "\u01c5")
+        self.assertEqual("\u01c5".title(), "\u01c5")
+        self.assertEqual("\u01c6".title(), "\u01c5")
+
+    def test_linebreak_7643(self):
+        for i in range(0x10000):
+            lines = (chr(i) + 'A').splitlines()
+            if i in (0x0a, 0x0b, 0x0c, 0x0d, 0x85,
+                     0x1c, 0x1d, 0x1e, 0x2028, 0x2029):
+                self.assertEqual(len(lines), 2,
+                                 r"\u%.4x should be a linebreak" % i)
+            else:
+                self.assertEqual(len(lines), 1,
+                                 r"\u%.4x should not be a linebreak" % i)
+
 if __name__ == "__main__":
     unittest.main()
-

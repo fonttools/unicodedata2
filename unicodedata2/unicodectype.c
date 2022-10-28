@@ -256,6 +256,21 @@ int _PyUnicode2_ToUpperFull(Py_UCS4 ch, Py_UCS4 *res)
     return 1;
 }
 
+int _PyUnicode2_ToFoldedFull(Py_UCS4 ch, Py_UCS4 *res)
+{
+    const _PyUnicode_TypeRecord *ctype = gettyperecord(ch);
+
+    if (ctype->flags & EXTENDED_CASE_MASK && (ctype->lower >> 20) & 7) {
+        int index = (ctype->lower & 0xFFFF) + (ctype->lower >> 24);
+        int n = (ctype->lower >> 20) & 7;
+        int i;
+        for (i = 0; i < n; i++)
+            res[i] = _PyUnicode_ExtendedCase[index + i];
+        return n;
+    }
+    return _PyUnicode2_ToLowerFull(ch, res);
+}
+
 int _PyUnicode2_IsCased(Py_UCS4 ch)
 {
     const _PyUnicode_TypeRecord *ctype = gettyperecord(ch);
@@ -279,3 +294,4 @@ int _PyUnicode2_IsAlpha(Py_UCS4 ch)
 
     return (ctype->flags & ALPHA_MASK) != 0;
 }
+
