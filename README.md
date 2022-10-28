@@ -19,8 +19,8 @@ Testing
 
 We run the tests using `tox`. This can be installed as usual with `pip install tox`.
 
-Without any options, `tox` will run the tests against the current python version where
-`tox` itself was installed:
+Without any options, `tox` will run the tests against all of the library's
+target Python versions. Any missing versions will be skipped.
 
 To run tests against a specific python version you can use the `-e` option followed by
 a tox environment name. E.g. `-e py38` will run tests against Python 3.8.
