@@ -41,7 +41,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         data = []
         h = hashlib.sha1()
 
-        for i in range(0x10000):
+        for i in range(sys.maxunicode + 1):
             char = chr(i)
             data = [
                 # Properties
