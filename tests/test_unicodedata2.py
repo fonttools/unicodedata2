@@ -14,41 +14,6 @@ import hashlib
 encoding = 'utf-8'
 errors = 'surrogatepass'
 
-MAX_UNICODE_UCS4 = 0x10FFFF
-
-if sys.maxunicode < MAX_UNICODE_UCS4:
-    # workarounds for Python "narrow" builds with UCS2-only support.
-
-    _narrow_unichr = chr
-
-    def chr(i):
-        """
-        Return the unicode character whose Unicode code is the integer 'i'.
-        The valid range is 0 to 0x10FFFF inclusive.
-        >>> _narrow_unichr(0xFFFF + 1)
-        Traceback (most recent call last):
-          File "<stdin>", line 1, in ?
-        ValueError: unichr() arg not in range(0x10000) (narrow Python build)
-        >>> chr(0xFFFF + 1) == u'\U00010000'
-        True
-        >>> chr(1114111) == u'\U0010FFFF'
-        True
-        >>> chr(0x10FFFF + 1)
-        Traceback (most recent call last):
-          File "<stdin>", line 1, in ?
-        ValueError: chr() arg not in range(0x110000)
-        """
-        try:
-            return _narrow_unichr(i)
-        except ValueError:
-            try:
-                padded_hex_str = hex(i)[2:].zfill(8)
-                escape_str = "\\U" + padded_hex_str
-                return escape_str.decode("unicode-escape")
-            except UnicodeDecodeError:
-                raise ValueError('chr() arg not in range(0x110000)')
-
-
 ### Run tests
 
 # NOTE: UnicodeMethodsTest upstream tests methods on `str` objects, and
@@ -68,13 +33,15 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
     # Update this if the database changes. Make sure to do a full rebuild
     # (e.g. 'make distclean && make') to get the correct checksum.
-    expectedchecksum = 'ef638fce5e02dcaa0ad14dd5034314e65f726c62'
+    expectedchecksum = '232affd2a50ec4bd69d2482aa0291385cbdefaba'
 
     def test_function_checksum(self):
+        import unicodedata2
+
         data = []
         h = hashlib.sha1()
 
-        for i in range(0x10000):
+        for i in range(sys.maxunicode + 1):
             char = chr(i)
             data = [
                 # Properties
@@ -86,10 +53,19 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
                 self.db.decomposition(char),
                 str(self.db.mirrored(char)),
                 str(self.db.combining(char)),
+                unicodedata2.east_asian_width(char),
+                self.db.name(char, ""),
             ]
             h.update(''.join(data).encode("ascii"))
         result = h.hexdigest()
         self.assertEqual(result, self.expectedchecksum)
+
+    def test_name_inverse_lookup(self):
+        for i in range(sys.maxunicode + 1):
+            char = chr(i)
+            looked_name = self.db.name(char, None)
+            if looked_name:
+                self.assertEqual(self.db.lookup(looked_name), char)
 
     def test_digit(self):
         self.assertEqual(self.db.digit('A', None), None)
