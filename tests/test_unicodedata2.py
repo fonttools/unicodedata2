@@ -33,7 +33,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
     # Update this if the database changes. Make sure to do a full rebuild
     # (e.g. 'make distclean && make') to get the correct checksum.
-    expectedchecksum = 'ef638fce5e02dcaa0ad14dd5034314e65f726c62'
+    expectedchecksum = '232affd2a50ec4bd69d2482aa0291385cbdefaba'
 
     def test_function_checksum(self):
         import unicodedata2
