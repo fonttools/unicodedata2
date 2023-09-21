@@ -36,6 +36,8 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
     expectedchecksum = 'ef638fce5e02dcaa0ad14dd5034314e65f726c62'
 
     def test_function_checksum(self):
+        import unicodedata2
+
         data = []
         h = hashlib.sha1()
 
@@ -51,6 +53,8 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
                 self.db.decomposition(char),
                 str(self.db.mirrored(char)),
                 str(self.db.combining(char)),
+                unicodedata2.east_asian_width(char),
+                self.db.name(char, ""),
             ]
             h.update(''.join(data).encode("ascii"))
         result = h.hexdigest()
