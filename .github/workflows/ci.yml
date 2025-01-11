@@ -33,18 +33,18 @@ jobs:
           - os: windows-latest
             arch: x86
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: "3.x"
     - name: Install dependencies
       run: pip install cibuildwheel
     - name: Build and Test Wheels
       run: python -m cibuildwheel --output-dir wheelhouse
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: unicodedata2-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
@@ -60,17 +60,17 @@ jobs:
       CIBW_BUILD: cp${{ matrix.python }}-*
       CIBW_ARCHS: ${{ matrix.arch }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - uses: docker/setup-qemu-action@v1.2.0
+    - uses: docker/setup-qemu-action@v3
       with:
         platforms: all
     - name: Install dependencies
       run: pip install cibuildwheel
     - name: Build and Test Wheels
       run: python -m cibuildwheel --output-dir wheelhouse
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: unicodedata2-${{ matrix.python }}-linux-${{ matrix.arch }}
         path: wheelhouse/*.whl
@@ -82,11 +82,11 @@ jobs:
     needs: [build_wheels, build_aarch64_wheels]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: "3.x"
     - name: Install dependencies
@@ -94,7 +94,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install --upgrade setuptools wheel twine
     - name: Download artifacts from build jobs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         path: wheelhouse/
     - name: Move wheels to dist/ directory
