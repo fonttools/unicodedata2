@@ -4,7 +4,7 @@
 unicodedata2
 ============
 
-[unicodedata] backport/updates.
+[unicodedata] backport/updates. Currently supports Unicode 17.0.0.
 
 The versions of this package match Unicode versions, so unicodedata2==13.0.0 is data from Unicode 13.0.0.
 
