@@ -81,6 +81,12 @@ jobs:
     # ... and all build jobs completed successfully
     needs: [build_wheels, build_aarch64_wheels]
     runs-on: ubuntu-latest
+    environment:
+      name: publish-to-pypi
+      url: https://pypi.org/p/unicodedata2
+    permissions:
+      id-token: write # IMPORTANT: mandatory for trusted publishing
+      contents: write # Needed to create GH release
     steps:
     - uses: actions/checkout@v4
       with:
@@ -127,11 +133,8 @@ jobs:
         body_path: "${{ runner.temp }}/release_notes.md"
         draft: false
         prerelease: false
-    - name: Build and publish
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        python setup.py sdist
-        twine upload dist/*
+    - name: Build sdist
+      run: python setup.py sdist
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
 
