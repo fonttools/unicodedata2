@@ -33,7 +33,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
     # Update this if the database changes. Make sure to do a full rebuild
     # (e.g. 'make distclean && make') to get the correct checksum.
-    expectedchecksum = '2cf81cbeaa7cbc8f1ace57dd6c56d1f30f1a2de1'
+    expectedchecksum = '65670ae03a324c5f9e826a4de3e25bae4d73c9b7'
 
     def test_function_checksum(self):
         import unicodedata2
@@ -185,6 +185,31 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.normalize('NFC', u11a7_str_a), u11a7_str_b)
         self.assertEqual(self.db.normalize('NFC', u11c3_str_a), u11c3_str_b)
 
+
+    def test_cjk_unified_ideograph_names(self):
+        # Test that is_unified_ideograph covers all CJK ranges by checking
+        # that name() and lookup() work for the first and last codepoint of
+        # each range. These ranges must be kept in sync between
+        # makeunicodedata.py:cjk_ranges and unicodedata_cjk.h.
+        cjk_ranges = [
+            (0x3400, 0x4DBF),    # CJK Ideograph Extension A
+            (0x4E00, 0x9FFF),    # CJK Ideograph
+            (0x20000, 0x2A6DF),  # CJK Ideograph Extension B
+            (0x2A700, 0x2B73F),  # CJK Ideograph Extension C
+            (0x2B740, 0x2B81D),  # CJK Ideograph Extension D
+            (0x2B820, 0x2CEAD),  # CJK Ideograph Extension E
+            (0x2CEB0, 0x2EBE0),  # CJK Ideograph Extension F
+            (0x2EBF0, 0x2EE5D),  # CJK Ideograph Extension I
+            (0x30000, 0x3134A),  # CJK Ideograph Extension G
+            (0x31350, 0x323AF),  # CJK Ideograph Extension H
+            (0x323B0, 0x33479),  # CJK Ideograph Extension J
+        ]
+        for start, end in cjk_ranges:
+            for cp in (start, end):
+                expected_name = "CJK UNIFIED IDEOGRAPH-%X" % cp
+                char = chr(cp)
+                self.assertEqual(self.db.name(char), expected_name)
+                self.assertEqual(self.db.lookup(expected_name), char)
 
     def test_east_asian_width(self):
         eaw = self.db.east_asian_width
