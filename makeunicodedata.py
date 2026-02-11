@@ -961,7 +961,11 @@ def open_data(template, version):
         else:
             url = ('https://www.unicode.org/Public/%s/ucd/'+template) % (version, '')
         os.makedirs(DATA_DIR, exist_ok=True)
-        urllib.request.urlretrieve(url, filename=local)
+        # unicode.org blocks requests without a User-Agent header
+        req = urllib.request.Request(url, headers={'User-Agent': 'makeunicodedata.py'})
+        with urllib.request.urlopen(req) as response:
+            with open(local, 'wb') as f:
+                f.write(response.read())
     if local.endswith('.txt'):
         return open(local, encoding='utf-8')
     else:
