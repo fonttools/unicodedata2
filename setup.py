@@ -26,7 +26,7 @@ module1 = Extension(
 
 setup(
     name="unicodedata2",
-    version="17.0.0",
+    version="17.0.1",
     description="Unicodedata backport updated to the latest Unicode version.",
     long_description=long_description,
     long_description_content_type="text/markdown",
