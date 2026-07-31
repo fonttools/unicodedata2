@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, ubuntu-24.04-arm, windows-latest]
         arch: [auto64]
         include:
           - os: macos-latest
@@ -41,7 +41,7 @@ jobs:
       with:
         python-version: "3.x"
     - name: Install dependencies
-      run: pip install cibuildwheel
+      run: pip install 'cibuildwheel<4'
     - name: Build and Test Wheels
       run: python -m cibuildwheel --output-dir wheelhouse
     - uses: actions/upload-artifact@v4
@@ -49,37 +49,11 @@ jobs:
         name: unicodedata2-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
 
-  build_aarch64_wheels:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # aarch64 uses qemu so it's slow, build each py version in parallel jobs
-        python: [38, 39, 310, 312, 313, 314]
-        arch: [aarch64]
-    env:
-      CIBW_BUILD: cp${{ matrix.python }}-*
-      CIBW_ARCHS: ${{ matrix.arch }}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - uses: docker/setup-qemu-action@v3
-      with:
-        platforms: all
-    - name: Install dependencies
-      run: pip install cibuildwheel
-    - name: Build and Test Wheels
-      run: python -m cibuildwheel --output-dir wheelhouse
-    - uses: actions/upload-artifact@v4
-      with:
-        name: unicodedata2-${{ matrix.python }}-linux-${{ matrix.arch }}
-        path: wheelhouse/*.whl
-
   deploy:
     # only run if the commit is tagged...
     if: github.ref_type == 'tag'
     # ... and all build jobs completed successfully
-    needs: [build_wheels, build_aarch64_wheels]
+    needs: [build_wheels]
     runs-on: ubuntu-latest
     environment:
       name: publish-to-pypi
@@ -137,4 +111,3 @@ jobs:
       run: python setup.py sdist
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
-
