@@ -27,6 +27,12 @@ testing = [
     "pytest-randomly",
 ]
 
+# Local development only. PEP 735 dependency groups are never written into
+# the published wheel/sdist metadata, so this adds nothing for installers of
+# unicodedata2 -- it just gives contributors "pip install --group dev".
+[dependency-groups]
+dev = ["tox"]
+
 [project.urls]
 Homepage = "http://github.com/fonttools/unicodedata2"
 Download = "http://github.com/fonttools/unicodedata2"

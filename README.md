@@ -17,7 +17,8 @@ Pre-compiled wheel packages are available on [PyPI] and can be installed via pip
 Testing
 =======
 
-We run the tests using `tox`. This can be installed as usual with `pip install tox`.
+We run the tests using `tox`. This can be installed as usual with `pip install tox`,
+or with `pip install --group dev` to pick it up from `pyproject.toml`.
 
 Without any options, `tox` will run the tests against all of the library's
 target Python versions. Any missing versions will be skipped.
