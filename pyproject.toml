@@ -18,10 +18,12 @@ license-files = ["LICENSE"]
 dynamic = ["readme"]
 
 [project.optional-dependencies]
+# Installed into every cibuildwheel test environment via CIBW_TEST_EXTRAS, so
+# keep it to what "pytest tests/" actually loads. pytest-randomly is a plugin
+# and shuffles test order just by being installed; coverage and pytest-xdist
+# needed flags nothing passes.
 testing = [
     "pytest",
-    "coverage",
-    "pytest-xdist",
     "pytest-randomly",
 ]
 
