@@ -8,6 +8,10 @@ on:
     branches: [master]
 
 env:
+  # cibuildwheel 3.0 moved PyPy into an opt-in "enable group", which silently
+  # dropped the PyPy wheels this project had shipped up to 16.0.0 (17.0.0 and
+  # 17.0.1 published none). Ask for them back explicitly.
+  CIBW_ENABLE: pypy
   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
   CIBW_MANYLINUX_I686_IMAGE: manylinux2014
   CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
@@ -42,6 +46,8 @@ jobs:
         python-version: "3.x"
     - name: Install dependencies
       run: pip install 'cibuildwheel<4'
+    - name: Download normalization test data
+      run: python tests/download_test_data.py
     - name: Build and Test Wheels
       run: python -m cibuildwheel --output-dir wheelhouse
     - uses: actions/upload-artifact@v4
@@ -72,7 +78,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install --upgrade setuptools wheel twine
+        pip install --upgrade build twine
     - name: Download artifacts from build jobs
       uses: actions/download-artifact@v4
       with:
@@ -108,6 +114,6 @@ jobs:
         draft: false
         prerelease: false
     - name: Build sdist
-      run: python setup.py sdist
+      run: python -m build --sdist
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1

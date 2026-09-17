@@ -1,0 +1,57 @@
+[build-system]
+# setuptools 77.0.1 is the first release that combines declarative ``ext-modules``
+# (added in 74.1) with PEP 639 license metadata, which is what lets this
+# project drop setup.py entirely.
+requires = ["setuptools>=77.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unicodedata2"
+version = "17.0.1"
+requires-python = ">=3.9"
+description = "Unicodedata backport updated to the latest Unicode version."
+authors = [
+    { name = "Mike Kaplinskiy", email = "mike.kaplinskiy@gmail.com" },
+]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+# README.md and CHANGELOG.md are concatenated so both are shown on PyPI.
+dynamic = ["readme"]
+
+[project.optional-dependencies]
+# Installed into every cibuildwheel test environment via CIBW_TEST_EXTRAS, so
+# keep it to what "pytest tests/" actually loads. pytest-randomly is a plugin
+# and shuffles test order just by being installed; coverage and pytest-xdist
+# needed flags nothing passes.
+testing = [
+    "pytest",
+    "pytest-randomly",
+]
+
+# Local development only. PEP 735 dependency groups are never written into
+# the published wheel/sdist metadata, so this adds nothing for installers of
+# unicodedata2 -- it just gives contributors "pip install --group dev".
+[dependency-groups]
+dev = ["tox"]
+
+[project.urls]
+Homepage = "http://github.com/fonttools/unicodedata2"
+Download = "http://github.com/fonttools/unicodedata2"
+
+[tool.setuptools]
+platforms = ["any"]
+# The distribution is a single top-level extension module: there are no Python
+# packages or modules to ship. Saying so explicitly keeps auto-discovery from
+# looking at the unicodedata2/ source directory or at tests/.
+packages = []
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md", "CHANGELOG.md"], content-type = "text/markdown" }
+
+[[tool.setuptools.ext-modules]]
+name = "unicodedata2"
+sources = [
+    "unicodedata2/unicodedata.c",
+    "unicodedata2/unicodectype.c",
+]
+include-dirs = ["unicodedata2"]
