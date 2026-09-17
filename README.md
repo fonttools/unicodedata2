@@ -23,6 +23,11 @@ We run the tests using `tox`. This can be installed as usual with `pip install t
 or with `pip install --group dev` (pip 25.1 or newer) to pick it up from
 `pyproject.toml`.
 
+Tox and CI download the version-matched Unicode normalization data before
+running tests. Download failures stop the run. Before running `pytest` directly,
+run `python tests/download_test_data.py` once. The downloaded files are not
+included in source distributions or wheels.
+
 Without any options, `tox` will run the tests against all of the library's
 target Python versions. Any missing versions will be skipped.
 

@@ -6,6 +6,8 @@
 
 """
 
+from functools import partial
+from pathlib import Path
 import sys
 import unittest
 import hashlib
@@ -13,6 +15,10 @@ import hashlib
 
 encoding = 'utf-8'
 errors = 'surrogatepass'
+
+# Selected tests adapted from CPython 9ab004d41e:
+# Lib/test/test_unicodedata.py and Lib/test/test_ucn.py.
+# Property tests cover the current database; normalization tests also cover 3.2.0.
 
 ### Run tests
 
@@ -60,6 +66,52 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         result = h.hexdigest()
         self.assertEqual(result, self.expectedchecksum)
 
+    def test_aliases(self):
+        # Check that the aliases defined in the NameAliases.txt file work.
+        # This should be updated when new aliases are added or the file
+        # should be downloaded and parsed instead.  See #12753.
+        aliases = [
+            ('LATIN CAPITAL LETTER GHA', 0x01A2),
+            ('LATIN SMALL LETTER GHA', 0x01A3),
+            ('KANNADA LETTER LLLA', 0x0CDE),
+            ('LAO LETTER FO FON', 0x0E9D),
+            ('LAO LETTER FO FAY', 0x0E9F),
+            ('LAO LETTER RO', 0x0EA3),
+            ('LAO LETTER LO', 0x0EA5),
+            ('TIBETAN MARK BKA- SHOG GI MGO RGYAN', 0x0FD0),
+            ('YI SYLLABLE ITERATION MARK', 0xA015),
+            ('PRESENTATION FORM FOR VERTICAL RIGHT WHITE LENTICULAR BRACKET', 0xFE18),
+            ('BYZANTINE MUSICAL SYMBOL FTHORA SKLIRON CHROMA VASIS', 0x1D0C5)
+        ]
+        for alias, codepoint in aliases:
+            self.assertEqual(self.db.lookup(alias), chr(codepoint))
+            name = self.db.name(chr(codepoint))
+            self.assertNotEqual(name, alias)
+            self.assertEqual(self.db.lookup(alias),
+                             self.db.lookup(name))
+            with self.assertRaises(KeyError):
+                self.db.ucd_3_2_0.lookup(alias)
+
+    def test_named_sequences_sample(self):
+        # Check a few named sequences.  See #12753.
+        sequences = [
+            ('LATIN SMALL LETTER R WITH TILDE', '\u0072\u0303'),
+            ('TAMIL SYLLABLE SAI', '\u0BB8\u0BC8'),
+            ('TAMIL SYLLABLE MOO', '\u0BAE\u0BCB'),
+            ('TAMIL SYLLABLE NNOO', '\u0BA3\u0BCB'),
+            ('TAMIL CONSONANT KSS', '\u0B95\u0BCD\u0BB7\u0BCD'),
+        ]
+        for seqname, codepoints in sequences:
+            self.assertEqual(self.db.lookup(seqname), codepoints)
+            with self.assertRaises(KeyError):
+                self.db.ucd_3_2_0.lookup(seqname)
+
+    def test_errors(self):
+        self.assertRaises(TypeError, self.db.name)
+        self.assertRaises(TypeError, self.db.name, 'xx')
+        self.assertRaises(TypeError, self.db.lookup)
+        self.assertRaises(KeyError, self.db.lookup, 'unknown')
+
     def test_name_inverse_lookup(self):
         for i in range(sys.maxunicode + 1):
             char = chr(i)
@@ -75,6 +127,13 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.digit('\U00020000', None), None)
         self.assertEqual(self.db.digit('\U0001D7FD'), 7)
 
+        # New in 13.0.0
+        self.assertEqual(self.db.digit('\U0001fbf9', None), 9)
+        # New in 14.0.0
+        self.assertEqual(self.db.digit('\U00016ac9', None), 9)
+        # New in 15.0.0
+        self.assertEqual(self.db.digit('\U0001e4f9', None), 9)
+
         self.assertRaises(TypeError, self.db.digit)
         self.assertRaises(TypeError, self.db.digit, 'xx')
         self.assertRaises(ValueError, self.db.digit, 'x')
@@ -84,9 +143,28 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.numeric('9'), 9)
         self.assertEqual(self.db.numeric('\u215b'), 0.125)
         self.assertEqual(self.db.numeric('\u2468'), 9.0)
-        self.assertEqual(self.db.numeric('\ua627'), 7.0)
         self.assertEqual(self.db.numeric('\U00020000', None), None)
-        self.assertEqual(self.db.numeric('\U0001012A'), 9000)
+
+        # New in 4.1.0
+        self.assertEqual(self.db.numeric('\U0001012A', None), 9000)
+        # Changed in 4.1.0
+        self.assertEqual(self.db.numeric('\u5793', None), None)
+        # New in 5.0.0
+        self.assertEqual(self.db.numeric('\u07c0', None), 0.0)
+        # New in 5.1.0
+        self.assertEqual(self.db.numeric('\ua627', None), 7.0)
+        # Changed in 5.2.0
+        self.assertEqual(self.db.numeric('\u09f6'), 3/16)
+        # New in 6.0.0
+        self.assertEqual(self.db.numeric('\u0b72', None), 0.25)
+        # New in 12.0.0
+        self.assertEqual(self.db.numeric('\U0001ed3c', None), 0.5)
+        # New in 13.0.0
+        self.assertEqual(self.db.numeric('\U0001fbf9', None), 9)
+        # New in 14.0.0
+        self.assertEqual(self.db.numeric('\U00016ac9', None), 9)
+        # New in 15.0.0
+        self.assertEqual(self.db.numeric('\U0001e4f9', None), 9)
 
         self.assertRaises(TypeError, self.db.numeric)
         self.assertRaises(TypeError, self.db.numeric, 'xx')
@@ -100,6 +178,18 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.decimal('\U00020000', None), None)
         self.assertEqual(self.db.decimal('\U0001D7FD'), 7)
 
+        # New in 4.1.0
+        self.assertEqual(self.db.decimal('\xb2', None), None)
+        self.assertEqual(self.db.decimal('\u1369', None), None)
+        # New in 5.0.0
+        self.assertEqual(self.db.decimal('\u07c0', None), 0)
+        # New in 13.0.0
+        self.assertEqual(self.db.decimal('\U0001fbf9', None), 9)
+        # New in 14.0.0
+        self.assertEqual(self.db.decimal('\U00016ac9', None), 9)
+        # New in 15.0.0
+        self.assertEqual(self.db.decimal('\U0001e4f9', None), 9)
+
         self.assertRaises(TypeError, self.db.decimal)
         self.assertRaises(TypeError, self.db.decimal, 'xx')
         self.assertRaises(ValueError, self.db.decimal, 'x')
@@ -109,7 +199,21 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.category('a'), 'Ll')
         self.assertEqual(self.db.category('A'), 'Lu')
         self.assertEqual(self.db.category('\U00020000'), 'Lo')
+
+        # New in 4.1.0
         self.assertEqual(self.db.category('\U0001012A'), 'No')
+        self.assertEqual(self.db.category('\U000e01ef'), 'Mn')
+        # New in 5.1.0
+        self.assertEqual(self.db.category('\u0374'), 'Lm')
+        # Changed in 13.0.0
+        self.assertEqual(self.db.category('\u0b55'), 'Mn')
+        self.assertEqual(self.db.category('\U0003134a'), 'Lo')
+        # Changed in 14.0.0
+        self.assertEqual(self.db.category('\u061d'), 'Po')
+        self.assertEqual(self.db.category('\U0002b738'), 'Lo')
+        # Changed in 15.0.0
+        self.assertEqual(self.db.category('\u0cf3'), 'Mc')
+        self.assertEqual(self.db.category('\U000323af'), 'Lo')
 
         self.assertRaises(TypeError, self.db.category)
         self.assertRaises(TypeError, self.db.category, 'xx')
@@ -136,6 +240,16 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.mirrored('\u2201'), 1)
         self.assertEqual(self.db.mirrored('\U00020000'), 0)
 
+        # New in 5.0.0
+        self.assertEqual(self.db.mirrored('\u0f3a'), 1)
+        self.assertEqual(self.db.mirrored('\U0001d7c3'), 1)
+        # New in 11.0.0
+        self.assertEqual(self.db.mirrored('\u29a1'), 0)
+        # New in 14.0.0
+        self.assertEqual(self.db.mirrored('\u2e5c'), 1)
+        # New in 16.0.0
+        self.assertEqual(self.db.mirrored('\u226D'), 1)
+
         self.assertRaises(TypeError, self.db.mirrored)
         self.assertRaises(TypeError, self.db.mirrored, 'xx')
 
@@ -145,15 +259,61 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.combining('\u20e1'), 230)
         self.assertEqual(self.db.combining('\U00020000'), 0)
 
+        # New in 4.1.0
+        self.assertEqual(self.db.combining('\u0350'), 230)
+        # New in 9.0.0
+        self.assertEqual(self.db.combining('\U0001e94a'), 7)
+        # New in 13.0.0
+        self.assertEqual(self.db.combining('\u1abf'), 220)
+        self.assertEqual(self.db.combining('\U00016ff1'), 6)
+        # New in 14.0.0
+        self.assertEqual(self.db.combining('\u0c3c'), 7)
+        self.assertEqual(self.db.combining('\U0001e2ae'), 230)
+        # New in 15.0.0
+        self.assertEqual(self.db.combining('\U00010efd'), 220)
+        # New in 16.0.0
+        self.assertEqual(self.db.combining('\u0897'), 230)
+        # New in 17.0.0
+        self.assertEqual(self.db.combining('\u1ACF'), 230)
+
         self.assertRaises(TypeError, self.db.combining)
         self.assertRaises(TypeError, self.db.combining, 'xx')
 
-    def test_normalize(self):
-        self.assertRaises(TypeError, self.db.normalize)
-        self.assertRaises(ValueError, self.db.normalize, 'unknown', 'xx')
-        self.assertEqual(self.db.normalize('NFKC', ''), '')
-        # The rest can be found in test_normalization.py
-        # which requires an external file.
+    def test_no_names_in_pua(self):
+        puas = [*range(0xe000, 0xf8ff),
+                *range(0xf0000, 0xfffff),
+                *range(0x100000, 0x10ffff)]
+        for i in puas:
+            char = chr(i)
+            self.assertRaises(ValueError, self.db.name, char)
+
+    def test_long_combining_mark_run(self):
+        # gh-149079: avoid quadratic canonical ordering.
+        payload = "a" + ("\u0300\u0327" * 32)
+        nfd = "a" + ("\u0327" * 32) + ("\u0300" * 32)
+        nfc = "\u00e0" + ("\u0327" * 32) + ("\u0300" * 31)
+
+        self.assertEqual(self.db.normalize("NFD", payload), nfd)
+        self.assertEqual(self.db.normalize("NFKD", payload), nfd)
+        self.assertEqual(self.db.normalize("NFC", payload), nfc)
+        self.assertEqual(self.db.normalize("NFKC", payload), nfc)
+
+    def test_combining_mark_run_fast_paths(self):
+        # gh-149079: cover short runs and already-sorted long runs.
+        short_payload = "a" + ("\u0300\u0327" * 9) + "\u0300"
+        short_nfd = "a" + ("\u0327" * 9) + ("\u0300" * 10)
+        short_nfc = "\u00e0" + ("\u0327" * 9) + ("\u0300" * 9)
+        long_sorted = "a" + ("\u0327" * 30) + ("\u0300" * 30)
+        long_sorted_nfc = "\u00e0" + ("\u0327" * 30) + ("\u0300" * 29)
+
+        self.assertEqual(self.db.normalize("NFD", short_payload), short_nfd)
+        self.assertEqual(self.db.normalize("NFKD", short_payload), short_nfd)
+        self.assertEqual(self.db.normalize("NFC", short_payload), short_nfc)
+        self.assertEqual(self.db.normalize("NFKC", short_payload), short_nfc)
+        self.assertEqual(self.db.normalize("NFD", long_sorted), long_sorted)
+        self.assertEqual(self.db.normalize("NFKD", long_sorted), long_sorted)
+        self.assertEqual(self.db.normalize("NFC", long_sorted), long_sorted_nfc)
+        self.assertEqual(self.db.normalize("NFKC", long_sorted), long_sorted_nfc)
 
     def test_pr29(self):
         # http://www.unicode.org/review/pr-29.html
@@ -270,7 +430,7 @@ class UnicodeMiscTest(UnicodeDatabaseTest):
         # i.e. if a character has a decimal value,
         # its numeric value should be the same.
         count = 0
-        for i in range(0x10000):
+        for i in range(sys.maxunicode + 1):
             c = chr(i)
             dec = self.db.decimal(c, -1)
             if dec != -1:
@@ -283,7 +443,7 @@ class UnicodeMiscTest(UnicodeDatabaseTest):
         # i.e. if a character has a digit value,
         # its numeric value should be the same.
         count = 0
-        for i in range(0x10000):
+        for i in range(sys.maxunicode + 1):
             c = chr(i)
             dec = self.db.digit(c, -1)
             if dec != -1:
@@ -332,6 +492,78 @@ class UnicodeMiscTest(UnicodeDatabaseTest):
             else:
                 self.assertEqual(len(lines), 1,
                                  r"\u%.4x should not be a linebreak" % i)
+
+class NormalizationTest(UnicodeDatabaseTest):
+    # Adapted from CPython's Lib/test/test_unicodedata.py (9ab004d41e).
+    # Setup downloads the data; never skip it. unicodedata2 has no is_normalized.
+    @staticmethod
+    def unistr(data):
+        data = [int(x, 16) for x in data.split(" ")]
+        return "".join([chr(x) for x in data])
+
+    def test_normalization(self):
+        self.check_normalization(self.db)
+
+    def test_normalization_3_2_0(self):
+        self.check_normalization(self.db.ucd_3_2_0)
+
+    def check_normalization(self, ucd):
+        filename = 'NormalizationTest-%s.txt' % ucd.unidata_version
+        path = Path(__file__).with_name('data') / filename
+        with path.open(encoding='utf-8') as testdata:
+            self.assertEqual(testdata.readline().strip(), '# ' + filename)
+            self.run_normalization_tests(testdata, ucd)
+
+    def run_normalization_tests(self, testdata, ucd):
+        part = None
+        part1_data = set()
+
+        NFC = partial(ucd.normalize, "NFC")
+        NFKC = partial(ucd.normalize, "NFKC")
+        NFD = partial(ucd.normalize, "NFD")
+        NFKD = partial(ucd.normalize, "NFKD")
+
+        for line in testdata:
+            if '#' in line:
+                line = line.split('#')[0]
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("@Part"):
+                part = line.split()[0]
+                continue
+            c1,c2,c3,c4,c5 = [self.unistr(x) for x in line.split(';')[:-1]]
+
+            # Perform tests
+            self.assertTrue(c2 ==  NFC(c1) ==  NFC(c2) ==  NFC(c3), line)
+            self.assertTrue(c4 ==  NFC(c4) ==  NFC(c5), line)
+            self.assertTrue(c3 ==  NFD(c1) ==  NFD(c2) ==  NFD(c3), line)
+            self.assertTrue(c5 ==  NFD(c4) ==  NFD(c5), line)
+            self.assertTrue(c4 == NFKC(c1) == NFKC(c2) == \
+                            NFKC(c3) == NFKC(c4) == NFKC(c5),
+                            line)
+            self.assertTrue(c5 == NFKD(c1) == NFKD(c2) == \
+                            NFKD(c3) == NFKD(c4) == NFKD(c5),
+                            line)
+
+            # Record part 1 data
+            if part == "@Part1":
+                part1_data.add(c1)
+
+        # Perform tests for all other data
+        for X in map(chr, range(sys.maxunicode + 1)):
+            if X in part1_data:
+                continue
+            self.assertTrue(X == NFC(X) == NFD(X) == NFKC(X) == NFKD(X), ord(X))
+
+    def test_edge_cases(self):
+        self.assertRaises(TypeError, self.db.normalize)
+        self.assertRaises(ValueError, self.db.normalize, 'unknown', 'xx')
+        self.assertEqual(self.db.normalize('NFKC', ''), '')
+
+    def test_bug_834676(self):
+        # Check for bug 834676
+        self.db.normalize('NFC', '\ud55c\uae00')
 
 if __name__ == "__main__":
     unittest.main()
