@@ -8,6 +8,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "unicodedata2"
 version = "17.0.1"
+requires-python = ">=3.9"
 description = "Unicodedata backport updated to the latest Unicode version."
 authors = [
     { name = "Mike Kaplinskiy", email = "mike.kaplinskiy@gmail.com" },
