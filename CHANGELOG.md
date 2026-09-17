@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+ - Backport CPython's faster canonical ordering, also fixing Unicode normalization on PyPy.
  - Require Python 3.9 or newer; drop Python 3.8 support.
 
 ## 17.0.0
