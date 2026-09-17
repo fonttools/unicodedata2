@@ -46,6 +46,8 @@ jobs:
         python-version: "3.x"
     - name: Install dependencies
       run: pip install cibuildwheel
+    - name: Download normalization test data
+      run: python tests/download_test_data.py
     - name: Build and Test Wheels
       run: python -m cibuildwheel --output-dir wheelhouse
     - uses: actions/upload-artifact@v4
@@ -72,6 +74,8 @@ jobs:
         platforms: all
     - name: Install dependencies
       run: pip install cibuildwheel
+    - name: Download normalization test data
+      run: python tests/download_test_data.py
     - name: Build and Test Wheels
       run: python -m cibuildwheel --output-dir wheelhouse
     - uses: actions/upload-artifact@v4
