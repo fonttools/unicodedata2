@@ -1,3 +1,8 @@
+# Changelog
+
+## Unreleased
+ - Require Python 3.9 or newer; drop Python 3.8 support.
+
 ## 17.0.0
  - Upgrade to Unicode 17.0.0
 
