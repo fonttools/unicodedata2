@@ -4,7 +4,7 @@
 unicodedata2
 ============
 
-[unicodedata] backport/updates. Currently supports Unicode 17.0.0.
+[unicodedata] backport/updates. Currently supports Unicode 18.0.0.
 
 Requires Python 3.9 or newer.
 
