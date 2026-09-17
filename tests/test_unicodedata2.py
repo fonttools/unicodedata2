@@ -39,7 +39,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
     # Update this if the database changes. Make sure to do a full rebuild
     # (e.g. 'make distclean && make') to get the correct checksum.
-    expectedchecksum = '65670ae03a324c5f9e826a4de3e25bae4d73c9b7'
+    expectedchecksum = 'f11a52558bcefd64c833f44f7ccb51faa8ec3310'
 
     def test_function_checksum(self):
         import unicodedata2
@@ -347,16 +347,15 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
 
     def test_cjk_unified_ideograph_names(self):
-        # Test that is_unified_ideograph covers all CJK ranges by checking
+        # Test that the generated name table covers all CJK ranges by checking
         # that name() and lookup() work for the first and last codepoint of
-        # each range. These ranges must be kept in sync between
-        # makeunicodedata.py:cjk_ranges and unicodedata_cjk.h.
+        # each range, including the Unicode 18 Extension D addition.
         cjk_ranges = [
             (0x3400, 0x4DBF),    # CJK Ideograph Extension A
             (0x4E00, 0x9FFF),    # CJK Ideograph
             (0x20000, 0x2A6DF),  # CJK Ideograph Extension B
             (0x2A700, 0x2B73F),  # CJK Ideograph Extension C
-            (0x2B740, 0x2B81D),  # CJK Ideograph Extension D
+            (0x2B740, 0x2B81E),  # CJK Ideograph Extension D
             (0x2B820, 0x2CEAD),  # CJK Ideograph Extension E
             (0x2CEB0, 0x2EBE0),  # CJK Ideograph Extension F
             (0x2EBF0, 0x2EE5D),  # CJK Ideograph Extension I
@@ -370,6 +369,120 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
                 char = chr(cp)
                 self.assertEqual(self.db.name(char), expected_name)
                 self.assertEqual(self.db.lookup(expected_name), char)
+
+    def test_name(self):
+        name = self.db.name
+        self.assertRaises(ValueError, name, '\0')
+        self.assertRaises(ValueError, name, '\n')
+        self.assertRaises(ValueError, name, '\x1F')
+        self.assertRaises(ValueError, name, '\x7F')
+        self.assertRaises(ValueError, name, '\x9F')
+        self.assertRaises(ValueError, name, '\uFFFE')
+        self.assertRaises(ValueError, name, '\uFFFF')
+        self.assertRaises(ValueError, name, '\U0010FFFF')
+        self.assertEqual(name('\U0010FFFF', 42), 42)
+
+        self.assertEqual(name(' '), 'SPACE')
+        self.assertEqual(name('1'), 'DIGIT ONE')
+        self.assertEqual(name('A'), 'LATIN CAPITAL LETTER A')
+        self.assertEqual(name('\xA0'), 'NO-BREAK SPACE')
+        self.assertEqual(name('\u0221', None), 'LATIN SMALL LETTER D WITH CURL')
+        self.assertEqual(name('\u3400'), 'CJK UNIFIED IDEOGRAPH-3400')
+        self.assertEqual(name('\u9FA5'), 'CJK UNIFIED IDEOGRAPH-9FA5')
+        self.assertEqual(name('\uAC00'), 'HANGUL SYLLABLE GA')
+        self.assertEqual(name('\uD7A3'), 'HANGUL SYLLABLE HIH')
+        self.assertEqual(name('\uF900'), 'CJK COMPATIBILITY IDEOGRAPH-F900')
+        self.assertEqual(name('\uFA6A'), 'CJK COMPATIBILITY IDEOGRAPH-FA6A')
+        self.assertEqual(name('\uFBF9'),
+                         'ARABIC LIGATURE UIGHUR KIRGHIZ YEH WITH HAMZA '
+                         'ABOVE WITH ALEF MAKSURA ISOLATED FORM')
+        self.assertEqual(name('\U00013460', None), 'EGYPTIAN HIEROGLYPH-13460')
+        self.assertEqual(name('\U000143FA', None), 'EGYPTIAN HIEROGLYPH-143FA')
+        self.assertEqual(name('\U00017000', None), 'TANGUT IDEOGRAPH-17000')
+        self.assertEqual(name('\U00018B00', None),
+                         'KHITAN SMALL SCRIPT CHARACTER-18B00')
+        self.assertEqual(name('\U00018CD5', None),
+                         'KHITAN SMALL SCRIPT CHARACTER-18CD5')
+        self.assertEqual(name('\U00018CFF', None),
+                         'KHITAN SMALL SCRIPT CHARACTER-18CFF')
+        self.assertEqual(name('\U00018D1E', None), 'TANGUT IDEOGRAPH-18D1E')
+        self.assertEqual(name('\U0001B170', None), 'NUSHU CHARACTER-1B170')
+        self.assertEqual(name('\U0001B2FB', None), 'NUSHU CHARACTER-1B2FB')
+        self.assertEqual(name('\U0001FBA8', None),
+                         'BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO '
+                         'MIDDLE LEFT AND MIDDLE RIGHT TO LOWER CENTRE')
+        self.assertEqual(name('\U0002A6D6'), 'CJK UNIFIED IDEOGRAPH-2A6D6')
+        self.assertEqual(name('\U0002FA1D'), 'CJK COMPATIBILITY IDEOGRAPH-2FA1D')
+        self.assertEqual(name('\U00033479', None), 'CJK UNIFIED IDEOGRAPH-33479')
+
+    def test_lookup_nonexistant(self):
+        # just make sure that lookup can fail
+        for nonexistent in [
+            "LATIN SMLL LETR A",
+            "OPEN HANDS SIGHS",
+            "DREGS",
+            "HANDBUG",
+            "MODIFIER LETTER CYRILLIC SMALL QUESTION MARK",
+            "???",
+            "CJK UNIFIED IDEOGRAPH-03400",
+            "CJK UNIFIED IDEOGRAPH-020000",
+            "CJK UNIFIED IDEOGRAPH-33FF",
+            "CJK UNIFIED IDEOGRAPH-F900",
+            "CJK UNIFIED IDEOGRAPH-13460",
+            "CJK UNIFIED IDEOGRAPH-17000",
+            "CJK UNIFIED IDEOGRAPH-18B00",
+            "CJK UNIFIED IDEOGRAPH-1B170",
+            "CJK COMPATIBILITY IDEOGRAPH-3400",
+            "TANGUT IDEOGRAPH-3400",
+            "HANGUL SYLLABLE AC00",
+        ]:
+            self.assertRaises(KeyError, self.db.lookup, nonexistent)
+
+    def test_tangut_ideographs(self):
+        self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-17000"), "\U00017000")
+        self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-187FF"), "\U000187ff")
+        self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-18D00"), "\U00018D00")
+        self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-18D1E"), "\U00018d1e")
+        self.assertEqual(self.db.lookup("tangut ideograph-18d1e"), "\U00018d1e")
+
+    def test_all_names(self):
+        filename = 'DerivedName-%s.txt' % self.db.unidata_version
+        path = Path(__file__).with_name('data') / filename
+        with path.open(encoding='utf-8') as testdata:
+            self.assertEqual(testdata.readline().strip(), '# ' + filename)
+            self.run_name_tests(testdata)
+
+    def run_name_tests(self, testdata):
+        names_ref = {}
+
+        def parse_cp(s):
+            return int(s, 16)
+
+        # Parse data
+        for line in testdata:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            raw_cp, name = line.split("; ")
+            # Check for a range
+            if ".." in raw_cp:
+                cp1, cp2 = map(parse_cp, raw_cp.split(".."))
+                # remove ‘*’ at the end
+                assert name[-1] == '*', (raw_cp, name)
+                name = name[:-1]
+                for cp in range(cp1, cp2 + 1):
+                    names_ref[cp] = f"{name}{cp:04X}"
+            elif name[-1] == '*':
+                cp = parse_cp(raw_cp)
+                name = name[:-1]
+                names_ref[cp] = f"{name}{cp:04X}"
+            else:
+                assert '*' not in name, (raw_cp, name)
+                cp = parse_cp(raw_cp)
+                names_ref[cp] = name
+
+        for cp in range(0, sys.maxunicode + 1):
+            self.assertEqual(self.db.name(chr(cp), None), names_ref.get(cp))
 
     def test_east_asian_width(self):
         eaw = self.db.east_asian_width
@@ -388,7 +501,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
     def test_east_asian_width_unassigned(self):
         eaw = self.db.east_asian_width
         # unassigned
-        for char in '\u0530\u0ecf\u10c6\u20fc\uaaca\U000107bd\U000115f2':
+        for char in '\u0530\u0ecf\u10c6\u20fc\uaaca\U000107c0\U000115f2':
             self.assertEqual(eaw(char), 'N')
             self.assertIs(self.db.name(char, None), None)
 

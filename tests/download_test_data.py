@@ -1,4 +1,4 @@
-"""Download version-matched normalization data before running the tests."""
+"""Download version-matched Unicode data before running the tests."""
 
 from pathlib import Path
 import re
@@ -15,13 +15,18 @@ def main():
 
     data_dir = tests_dir / 'data'
     data_dir.mkdir(exist_ok=True)
-    for version in (match.group(1), '3.2.0'):
-        filename = 'NormalizationTest-%s.txt' % version
-        if version == '3.2.0':
-            url = 'https://www.unicode.org/Public/3.2-Update/' + filename
-        else:
-            url = ('https://www.unicode.org/Public/%s/ucd/NormalizationTest.txt'
-                   % version)
+    version = match.group(1)
+    base_url = 'https://www.unicode.org/Public/'
+    downloads = [
+        ('NormalizationTest-%s.txt' % version,
+         '%s/ucd/NormalizationTest.txt' % version),
+        ('NormalizationTest-3.2.0.txt',
+         '3.2-Update/NormalizationTest-3.2.0.txt'),
+        ('DerivedName-%s.txt' % version,
+         '%s/ucd/extracted/DerivedName.txt' % version),
+    ]
+    for filename, remote_path in downloads:
+        url = base_url + remote_path
         request = Request(url, headers={'User-Agent': 'unicodedata2'})
         with urlopen(request, timeout=60) as response:
             data = response.read()

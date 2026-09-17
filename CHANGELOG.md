@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 18.0.0
+ - Upgrade to Unicode 18.0.0
+ - Backport algorithmic character names from CPython, including Tangut, Jurchen, and Small Seal.
  - Backport CPython's faster canonical ordering, also fixing Unicode normalization on PyPy.
  - Require Python 3.9 or newer; drop Python 3.8 support.
 
