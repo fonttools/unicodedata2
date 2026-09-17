@@ -45,7 +45,7 @@ jobs:
       with:
         python-version: "3.x"
     - name: Install dependencies
-      run: pip install 'cibuildwheel<4'
+      run: pip install cibuildwheel
     - name: Download normalization test data
       run: python tests/download_test_data.py
     - name: Build and Test Wheels
