@@ -78,18 +78,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install --upgrade build twine
-    - name: Download artifacts from build jobs
+        pip install --upgrade build
+    - name: Download wheels from build jobs
       uses: actions/download-artifact@v8
       with:
-        path: wheelhouse/
-    - name: Move wheels to dist/ directory
-      run: |
-        ls wheelhouse/*
-        mkdir -p dist/
-        for wheel_dir in wheelhouse/unicodedata2*/; do
-          mv "${wheel_dir}"/*.whl dist/
-        done
+        merge-multiple: true
+        path: dist/
+    - name: Build sdist
+      run: python -m build --sdist
     - name: Extract release notes from annotated tag message
       id: release_notes
       run: |
@@ -99,21 +95,18 @@ jobs:
         # strip leading 'refs/tags/' to get the tag name
         TAG_NAME="${GITHUB_REF##*/}"
         # Dump tag message to temporary .md file (excluding the PGP signature at the bottom)
-        TAG_MESSAGE=$(git tag -l --format='%(contents)' $TAG_NAME | sed -n '/-----BEGIN PGP SIGNATURE-----/q;p')
-        echo "$TAG_MESSAGE" > "${{ runner.temp }}/release_notes.md"
+        git tag -l --format='%(contents)' "$TAG_NAME" \
+          | sed -n '/-----BEGIN PGP SIGNATURE-----/q;p' \
+          > "${{ runner.temp }}/release_notes.md"
+        echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
     - name: Create GitHub release
-      id: create_release
-      uses: actions/create-release@v1
       env:
         # This token is provided by Actions, you do not need to create your own token
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
-        body_path: "${{ runner.temp }}/release_notes.md"
-        draft: false
-        prerelease: false
-    - name: Build sdist
-      run: python -m build --sdist
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG_NAME: ${{ steps.release_notes.outputs.tag_name }}
+      run: |
+        ls -l dist/
+        gh release create "$TAG_NAME" --title "$TAG_NAME" \
+          --notes-file "${{ runner.temp }}/release_notes.md"
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
