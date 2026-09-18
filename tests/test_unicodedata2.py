@@ -39,7 +39,7 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
 
     # Update this if the database changes. Make sure to do a full rebuild
     # (e.g. 'make distclean && make') to get the correct checksum.
-    expectedchecksum = 'f11a52558bcefd64c833f44f7ccb51faa8ec3310'
+    expectedchecksum = 'f2f46908e4a8ea1616baf2390f5383c12f610c5f'
 
     def test_function_checksum(self):
         import unicodedata2
@@ -149,12 +149,14 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.numeric('\U0001012A', None), 9000)
         # Changed in 4.1.0
         self.assertEqual(self.db.numeric('\u5793', None), None)
+        self.assertEqual(self.db.ucd_3_2_0.numeric('\u5793', None), 1e20)
         # New in 5.0.0
         self.assertEqual(self.db.numeric('\u07c0', None), 0.0)
         # New in 5.1.0
         self.assertEqual(self.db.numeric('\ua627', None), 7.0)
         # Changed in 5.2.0
         self.assertEqual(self.db.numeric('\u09f6'), 3/16)
+        self.assertEqual(self.db.ucd_3_2_0.numeric('\u09f6'), 3.0)
         # New in 6.0.0
         self.assertEqual(self.db.numeric('\u0b72', None), 0.25)
         # New in 12.0.0
@@ -230,6 +232,20 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
     def test_decomposition(self):
         self.assertEqual(self.db.decomposition('\uFFFE'),'')
         self.assertEqual(self.db.decomposition('\u00bc'), '<fraction> 0031 2044 0034')
+
+        # Hangul characters (CPython gh-88091), in both database views.
+        self.assertEqual(self.db.decomposition('\uAC00'), '1100 1161')
+        self.assertEqual(self.db.decomposition('\uD4DB'), '1111 1171 11B6')
+        self.assertEqual(self.db.decomposition('\uC2F8'), '110A 1161')
+        self.assertEqual(self.db.decomposition('\uD7A3'), '1112 1175 11C2')
+        self.assertEqual(self.db.ucd_3_2_0.decomposition('\uAC00'),
+                         '1100 1161')
+        self.assertEqual(self.db.ucd_3_2_0.decomposition('\uD4DB'),
+                         '1111 1171 11B6')
+        self.assertEqual(self.db.ucd_3_2_0.decomposition('\uC2F8'),
+                         '110A 1161')
+        self.assertEqual(self.db.ucd_3_2_0.decomposition('\uD7A3'),
+                         '1112 1175 11C2')
 
         self.assertRaises(TypeError, self.db.decomposition)
         self.assertRaises(TypeError, self.db.decomposition, 'xx')
@@ -438,6 +454,26 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         ]:
             self.assertRaises(KeyError, self.db.lookup, nonexistent)
 
+    def test_hangul_syllables(self):
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE GA"), "\uac00")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE GGWEOSS"), "\uafe8")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE DOLS"), "\ub3d0")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE RYAN"), "\ub7b8")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE MWIK"), "\ubba0")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE BBWAEM"), "\ubf88")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE SSEOL"), "\uc370")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE YI"), "\uc758")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE JJYOSS"), "\ucb40")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE KYEOLS"), "\ucf28")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE PAN"), "\ud310")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE HWEOK"), "\ud6f8")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE HIH"), "\ud7a3")
+
+        self.assertEqual(self.db.lookup("haNGul SYllABle WAe"), '\uc65c')
+        self.assertEqual(self.db.lookup("HAngUL syLLabLE waE"), '\uc65c')
+
+        self.assertRaises(ValueError, self.db.name, "\ud7a4")
+
     def test_tangut_ideographs(self):
         self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-17000"), "\U00017000")
         self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-187FF"), "\U000187ff")
@@ -605,6 +641,30 @@ class UnicodeMiscTest(UnicodeDatabaseTest):
             else:
                 self.assertEqual(len(lines), 1,
                                  r"\u%.4x should not be a linebreak" % i)
+
+    def test_normalize_return_type(self):
+        # gh-129569: normalize() return type must always be str
+        normalize = self.db.normalize
+
+        class MyStr(str):
+            pass
+
+        normalization_forms = ("NFC", "NFKC", "NFD", "NFKD")
+        input_strings = (
+            # normalized strings
+            "",
+            "ascii",
+            # unnormalized strings
+            "\u1e0b\u0323",
+            "\u0071\u0307\u0323",
+        )
+
+        for form in normalization_forms:
+            for input_str in input_strings:
+                with self.subTest(form=form, input_str=input_str):
+                    self.assertIs(type(normalize(form, input_str)), str)
+                    self.assertIs(type(normalize(form, MyStr(input_str))), str)
+
 
 class NormalizationTest(UnicodeDatabaseTest):
     # Adapted from CPython's Lib/test/test_unicodedata.py (9ab004d41e).

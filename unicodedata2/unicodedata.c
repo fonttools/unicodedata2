@@ -233,9 +233,9 @@ unicodedata_UCD_numeric_impl(PyObject *self, int chr,
             have_old = 1;
             rc = -1.0;
         }
-        else if (old->decimal_changed != 0xFF) {
+        else if (old->numeric_changed != 0.0) {
             have_old = 1;
-            rc = old->decimal_changed;
+            rc = old->numeric_changed;
         }
     }
 
@@ -392,6 +392,17 @@ unicodedata_UCD_east_asian_width_impl(PyObject *self, int chr)
     return PyUnicode_FromString(_PyUnicode_EastAsianWidthNames[index]);
 }
 
+// For Hangul decomposition
+#define SBase   0xAC00
+#define LBase   0x1100
+#define VBase   0x1161
+#define TBase   0x11A7
+#define LCount  19
+#define VCount  21
+#define TCount  28
+#define NCount  (VCount*TCount)
+#define SCount  (LCount*NCount)
+
 /*[clinic input]
 unicodedata.UCD.decomposition
 
@@ -420,6 +431,25 @@ unicodedata_UCD_decomposition_impl(PyObject *self, int chr)
         const change_record *old = get_old_record(self, c);
         if (old->category_changed == 0)
             return PyUnicode_FromString(""); /* unassigned */
+    }
+
+    // Hangul Decomposition.
+    // See section 3.12.2, "Hangul Syllable Decomposition"
+    // https://www.unicode.org/versions/latest/core-spec/chapter-3/#G56669
+    if (SBase <= code && code < (SBase + SCount)) {
+        int SIndex = code - SBase;
+        int L = LBase + SIndex / NCount;
+        int V = VBase + (SIndex % NCount) / TCount;
+        int T = TBase + SIndex % TCount;
+        if (T != TBase) {
+            PyOS_snprintf(decomp, sizeof(decomp),
+                          "%04X %04X %04X", L, V, T);
+        }
+        else {
+            PyOS_snprintf(decomp, sizeof(decomp),
+                          "%04X %04X", L, V);
+        }
+        return PyUnicode_FromString(decomp);
     }
 
     if (code < 0 || code >= 0x110000)
@@ -481,16 +511,6 @@ get_decomp_record(PyObject *self, Py_UCS4 code, int *index, int *prefix, int *co
 
     (*index)++;
 }
-
-#define SBase   0xAC00
-#define LBase   0x1100
-#define VBase   0x1161
-#define TBase   0x11A7
-#define LCount  19
-#define VCount  21
-#define TCount  28
-#define NCount  (VCount*TCount)
-#define SCount  (LCount*NCount)
 
 #define CANONICAL_ORDERING_COUNTING_SORT_THRESHOLD 20
 
@@ -916,35 +936,30 @@ unicodedata_UCD_normalize_impl(PyObject *self, const char *form,
     if (PyUnicode_GET_LENGTH(input) == 0) {
         /* Special case empty input strings, since resizing
            them  later would cause internal errors. */
-        Py_INCREF(input);
-        return input;
+        return PyUnicode_FromObject(input);
     }
 
     if (strcmp(form, "NFC") == 0) {
         if (is_normalized(self, input, 1, 0)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfc_nfkc(self, input, 0);
     }
     if (strcmp(form, "NFKC") == 0) {
         if (is_normalized(self, input, 1, 1)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfc_nfkc(self, input, 1);
     }
     if (strcmp(form, "NFD") == 0) {
         if (is_normalized(self, input, 0, 0)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfd_nfkd(self, input, 0);
     }
     if (strcmp(form, "NFKD") == 0) {
         if (is_normalized(self, input, 0, 1)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfd_nfkd(self, input, 1);
     }
@@ -1146,6 +1161,18 @@ _cmpname(PyObject *self, int code, const char* name, int namelen)
     return buffer[namelen] == '\0';
 }
 
+/* The generated prefixes are uppercase ASCII. PyPy lacks PyOS_strnicmp. */
+static int
+name_startswith(const char *name, const char *prefix)
+{
+    while (*prefix) {
+        if (UNICODEDATA2_TOUPPER(*name++) != *prefix++) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 static void
 find_syllable(const char *str, int *len, int *pos, int count, int column)
 {
@@ -1156,7 +1183,7 @@ find_syllable(const char *str, int *len, int *pos, int count, int column)
         len1 = Py_SAFE_DOWNCAST(strlen(s), size_t, int);
         if (len1 <= *len)
             continue;
-        if (strncmp(str, s, len1) == 0) {
+        if (name_startswith(str, s)) {
             *len = len1;
             *pos = i;
         }
@@ -1209,18 +1236,6 @@ parse_hex_code(const char *name, int namelen)
         return (Py_UCS4)-1;
     }
     return v;
-}
-
-/* The generated prefixes are uppercase ASCII. PyPy lacks PyOS_strnicmp. */
-static int
-name_startswith(const char *name, const char *prefix)
-{
-    while (*prefix) {
-        if (UNICODEDATA2_TOUPPER(*name++) != *prefix++) {
-            return 0;
-        }
-    }
-    return 1;
 }
 
 static int
