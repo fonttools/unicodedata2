@@ -1146,6 +1146,18 @@ _cmpname(PyObject *self, int code, const char* name, int namelen)
     return buffer[namelen] == '\0';
 }
 
+/* The generated prefixes are uppercase ASCII. PyPy lacks PyOS_strnicmp. */
+static int
+name_startswith(const char *name, const char *prefix)
+{
+    while (*prefix) {
+        if (UNICODEDATA2_TOUPPER(*name++) != *prefix++) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 static void
 find_syllable(const char *str, int *len, int *pos, int count, int column)
 {
@@ -1156,7 +1168,7 @@ find_syllable(const char *str, int *len, int *pos, int count, int column)
         len1 = Py_SAFE_DOWNCAST(strlen(s), size_t, int);
         if (len1 <= *len)
             continue;
-        if (strncmp(str, s, len1) == 0) {
+        if (name_startswith(str, s)) {
             *len = len1;
             *pos = i;
         }
@@ -1209,18 +1221,6 @@ parse_hex_code(const char *name, int namelen)
         return (Py_UCS4)-1;
     }
     return v;
-}
-
-/* The generated prefixes are uppercase ASCII. PyPy lacks PyOS_strnicmp. */
-static int
-name_startswith(const char *name, const char *prefix)
-{
-    while (*prefix) {
-        if (UNICODEDATA2_TOUPPER(*name++) != *prefix++) {
-            return 0;
-        }
-    }
-    return 1;
 }
 
 static int

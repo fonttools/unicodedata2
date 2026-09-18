@@ -440,6 +440,26 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         ]:
             self.assertRaises(KeyError, self.db.lookup, nonexistent)
 
+    def test_hangul_syllables(self):
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE GA"), "\uac00")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE GGWEOSS"), "\uafe8")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE DOLS"), "\ub3d0")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE RYAN"), "\ub7b8")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE MWIK"), "\ubba0")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE BBWAEM"), "\ubf88")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE SSEOL"), "\uc370")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE YI"), "\uc758")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE JJYOSS"), "\ucb40")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE KYEOLS"), "\ucf28")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE PAN"), "\ud310")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE HWEOK"), "\ud6f8")
+        self.assertEqual(self.db.lookup("HANGUL SYLLABLE HIH"), "\ud7a3")
+
+        self.assertEqual(self.db.lookup("haNGul SYllABle WAe"), '\uc65c')
+        self.assertEqual(self.db.lookup("HAngUL syLLabLE waE"), '\uc65c')
+
+        self.assertRaises(ValueError, self.db.name, "\ud7a4")
+
     def test_tangut_ideographs(self):
         self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-17000"), "\U00017000")
         self.assertEqual(self.db.lookup("TANGUT IDEOGRAPH-187FF"), "\U000187ff")
