@@ -7,6 +7,7 @@
  - Require Python 3.9 or newer; drop Python 3.8 support.
  - Fix historical numeric values in the Unicode 3.2 database.
  - Make Hangul syllable lookup case-insensitive.
+ - Return algorithmic Hangul syllable mappings from decomposition().
 
 ## 17.0.0
  - Upgrade to Unicode 17.0.0
