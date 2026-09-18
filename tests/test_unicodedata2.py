@@ -149,12 +149,14 @@ class UnicodeFunctionsTest(UnicodeDatabaseTest):
         self.assertEqual(self.db.numeric('\U0001012A', None), 9000)
         # Changed in 4.1.0
         self.assertEqual(self.db.numeric('\u5793', None), None)
+        self.assertEqual(self.db.ucd_3_2_0.numeric('\u5793', None), 1e20)
         # New in 5.0.0
         self.assertEqual(self.db.numeric('\u07c0', None), 0.0)
         # New in 5.1.0
         self.assertEqual(self.db.numeric('\ua627', None), 7.0)
         # Changed in 5.2.0
         self.assertEqual(self.db.numeric('\u09f6'), 3/16)
+        self.assertEqual(self.db.ucd_3_2_0.numeric('\u09f6'), 3.0)
         # New in 6.0.0
         self.assertEqual(self.db.numeric('\u0b72', None), 0.25)
         # New in 12.0.0
