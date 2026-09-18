@@ -642,6 +642,30 @@ class UnicodeMiscTest(UnicodeDatabaseTest):
                 self.assertEqual(len(lines), 1,
                                  r"\u%.4x should not be a linebreak" % i)
 
+    def test_normalize_return_type(self):
+        # gh-129569: normalize() return type must always be str
+        normalize = self.db.normalize
+
+        class MyStr(str):
+            pass
+
+        normalization_forms = ("NFC", "NFKC", "NFD", "NFKD")
+        input_strings = (
+            # normalized strings
+            "",
+            "ascii",
+            # unnormalized strings
+            "\u1e0b\u0323",
+            "\u0071\u0307\u0323",
+        )
+
+        for form in normalization_forms:
+            for input_str in input_strings:
+                with self.subTest(form=form, input_str=input_str):
+                    self.assertIs(type(normalize(form, input_str)), str)
+                    self.assertIs(type(normalize(form, MyStr(input_str))), str)
+
+
 class NormalizationTest(UnicodeDatabaseTest):
     # Adapted from CPython's Lib/test/test_unicodedata.py (9ab004d41e).
     # Setup downloads the data; never skip it. unicodedata2 has no is_normalized.

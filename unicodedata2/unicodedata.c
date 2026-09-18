@@ -936,35 +936,30 @@ unicodedata_UCD_normalize_impl(PyObject *self, const char *form,
     if (PyUnicode_GET_LENGTH(input) == 0) {
         /* Special case empty input strings, since resizing
            them  later would cause internal errors. */
-        Py_INCREF(input);
-        return input;
+        return PyUnicode_FromObject(input);
     }
 
     if (strcmp(form, "NFC") == 0) {
         if (is_normalized(self, input, 1, 0)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfc_nfkc(self, input, 0);
     }
     if (strcmp(form, "NFKC") == 0) {
         if (is_normalized(self, input, 1, 1)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfc_nfkc(self, input, 1);
     }
     if (strcmp(form, "NFD") == 0) {
         if (is_normalized(self, input, 0, 0)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfd_nfkd(self, input, 0);
     }
     if (strcmp(form, "NFKD") == 0) {
         if (is_normalized(self, input, 0, 1)) {
-            Py_INCREF(input);
-            return input;
+            return PyUnicode_FromObject(input);
         }
         return nfd_nfkd(self, input, 1);
     }

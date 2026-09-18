@@ -8,6 +8,7 @@
  - Fix historical numeric values in the Unicode 3.2 database.
  - Make Hangul syllable lookup case-insensitive.
  - Return algorithmic Hangul syllable mappings from decomposition().
+ - Always return an exact str from normalize(), including for str subclasses.
 
 ## 17.0.0
  - Upgrade to Unicode 17.0.0
