@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "unicodedata2"
-version = "18.0.0"
+version = "18.0.0rc1"
 requires-python = ">=3.9"
 description = "Unicodedata backport updated to the latest Unicode version."
 authors = [
